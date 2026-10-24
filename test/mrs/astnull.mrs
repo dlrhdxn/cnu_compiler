@@ -1,0 +1,7 @@
+fn hh(){}
+
+fn main(){
+    let a = hh();
+    if x > 0 {}
+    return;
+}

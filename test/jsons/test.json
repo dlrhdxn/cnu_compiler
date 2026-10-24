@@ -1,0 +1,147 @@
+{
+  "functions": [
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "cond": {
+              "left": {
+                "name": "x",
+                "node": "Identifier"
+              },
+              "node": "BinaryExpr",
+              "op": "==",
+              "right": {
+                "node": "IntLiteral",
+                "value": 0
+              }
+            },
+            "else": {
+              "cond": {
+                "left": {
+                  "name": "x",
+                  "node": "Identifier"
+                },
+                "node": "BinaryExpr",
+                "op": "==",
+                "right": {
+                  "node": "IntLiteral",
+                  "value": 1
+                }
+              },
+              "else": {
+                "cond": {
+                  "left": {
+                    "name": "x",
+                    "node": "Identifier"
+                  },
+                  "node": "BinaryExpr",
+                  "op": "==",
+                  "right": {
+                    "node": "IntLiteral",
+                    "value": 2
+                  }
+                },
+                "else": null,
+                "node": "IfStmt",
+                "then": {
+                  "node": "Block",
+                  "stmts": [
+                    {
+                      "cond": {
+                        "left": {
+                          "name": "x",
+                          "node": "Identifier"
+                        },
+                        "node": "BinaryExpr",
+                        "op": "==",
+                        "right": {
+                          "node": "IntLiteral",
+                          "value": 3
+                        }
+                      },
+                      "else": {
+                        "node": "Block",
+                        "stmts": [
+                          {
+                            "node": "ReturnStmt",
+                            "value": {
+                              "left": {
+                                "expr": {
+                                  "left": {
+                                    "expr": {
+                                      "left": {
+                                        "name": "x",
+                                        "node": "Identifier"
+                                      },
+                                      "node": "BinaryExpr",
+                                      "op": "+",
+                                      "right": {
+                                        "node": "IntLiteral",
+                                        "value": 3
+                                      }
+                                    },
+                                    "node": "ParenExpr"
+                                  },
+                                  "node": "BinaryExpr",
+                                  "op": "-",
+                                  "right": {
+                                    "expr": {
+                                      "left": {
+                                        "name": "x",
+                                        "node": "Identifier"
+                                      },
+                                      "node": "BinaryExpr",
+                                      "op": "-",
+                                      "right": {
+                                        "node": "IntLiteral",
+                                        "value": 4
+                                      }
+                                    },
+                                    "node": "ParenExpr"
+                                  }
+                                },
+                                "node": "ParenExpr"
+                              },
+                              "node": "BinaryExpr",
+                              "op": "+",
+                              "right": {
+                                "node": "IntLiteral",
+                                "value": 3
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "node": "IfStmt",
+                      "then": {
+                        "node": "Block",
+                        "stmts": []
+                      }
+                    }
+                  ]
+                }
+              },
+              "node": "IfStmt",
+              "then": {
+                "node": "Block",
+                "stmts": []
+              }
+            },
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": []
+            }
+          }
+        ]
+      },
+      "name": "main",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    }
+  ],
+  "node": "Program"
+}

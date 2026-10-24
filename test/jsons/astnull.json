@@ -1,0 +1,61 @@
+{
+  "functions": [
+    {
+      "body": {
+        "node": "Block",
+        "stmts": []
+      },
+      "name": "hh",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    },
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "init": {
+              "args": [],
+              "name": "hh",
+              "node": "CallExpr"
+            },
+            "mutable": false,
+            "name": "a",
+            "node": "VarDecl",
+            "type": null
+          },
+          {
+            "cond": {
+              "left": {
+                "name": "x",
+                "node": "Identifier"
+              },
+              "node": "BinaryExpr",
+              "op": ">",
+              "right": {
+                "node": "IntLiteral",
+                "value": 0
+              }
+            },
+            "else": null,
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": []
+            }
+          },
+          {
+            "node": "ReturnStmt",
+            "value": null
+          }
+        ]
+      },
+      "name": "main",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    }
+  ],
+  "node": "Program"
+}
