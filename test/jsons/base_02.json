@@ -1,0 +1,229 @@
+{
+  "functions": [
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "cond": {
+              "left": {
+                "left": {
+                  "name": "n",
+                  "node": "Identifier"
+                },
+                "node": "BinaryExpr",
+                "op": ">=",
+                "right": {
+                  "node": "IntLiteral",
+                  "value": 0
+                }
+              },
+              "node": "BinaryExpr",
+              "op": "&&",
+              "right": {
+                "left": {
+                  "name": "n",
+                  "node": "Identifier"
+                },
+                "node": "BinaryExpr",
+                "op": "<=",
+                "right": {
+                  "node": "IntLiteral",
+                  "value": 100
+                }
+              }
+            },
+            "else": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "node": "IntLiteral",
+                    "value": 0
+                  }
+                },
+                {
+                  "node": "ReturnStmt",
+                  "value": {
+                    "node": "BoolLiteral",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "node": "IntLiteral",
+                    "value": 1
+                  }
+                },
+                {
+                  "node": "ReturnStmt",
+                  "value": {
+                    "node": "BoolLiteral",
+                    "value": true
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "name": "classify",
+      "node": "FnDecl",
+      "params": [
+        {
+          "name": "n",
+          "node": "Param",
+          "type": "i32"
+        }
+      ],
+      "returnType": "bool"
+    },
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "init": {
+              "node": "IntLiteral",
+              "value": 10
+            },
+            "mutable": false,
+            "name": "a",
+            "node": "VarDecl",
+            "type": null
+          },
+          {
+            "init": {
+              "node": "IntLiteral",
+              "value": 20
+            },
+            "mutable": false,
+            "name": "b",
+            "node": "VarDecl",
+            "type": null
+          },
+          {
+            "cond": {
+              "left": {
+                "left": {
+                  "name": "a",
+                  "node": "Identifier"
+                },
+                "node": "BinaryExpr",
+                "op": "==",
+                "right": {
+                  "name": "b",
+                  "node": "Identifier"
+                }
+              },
+              "node": "BinaryExpr",
+              "op": "||",
+              "right": {
+                "left": {
+                  "name": "a",
+                  "node": "Identifier"
+                },
+                "node": "BinaryExpr",
+                "op": "!=",
+                "right": {
+                  "name": "b",
+                  "node": "Identifier"
+                }
+              }
+            },
+            "else": null,
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "name": "a",
+                    "node": "Identifier"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "cond": {
+              "node": "UnaryExpr",
+              "op": "!",
+              "operand": {
+                "expr": {
+                  "left": {
+                    "name": "a",
+                    "node": "Identifier"
+                  },
+                  "node": "BinaryExpr",
+                  "op": "<",
+                  "right": {
+                    "name": "b",
+                    "node": "Identifier"
+                  }
+                },
+                "node": "ParenExpr"
+              }
+            },
+            "else": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "node": "UnaryExpr",
+                    "op": "-",
+                    "operand": {
+                      "node": "IntLiteral",
+                      "value": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "node": "IntLiteral",
+                    "value": 999
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "expr": {
+              "args": [
+                {
+                  "node": "IntLiteral",
+                  "value": 50
+                }
+              ],
+              "name": "classify",
+              "node": "CallExpr"
+            },
+            "node": "ExprStmt"
+          }
+        ]
+      },
+      "name": "main",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    }
+  ],
+  "node": "Program"
+}

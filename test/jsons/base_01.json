@@ -1,0 +1,81 @@
+{
+  "functions": [
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "node": "ReturnStmt",
+            "value": {
+              "left": {
+                "name": "x",
+                "node": "Identifier"
+              },
+              "node": "BinaryExpr",
+              "op": "*",
+              "right": {
+                "name": "x",
+                "node": "Identifier"
+              }
+            }
+          }
+        ]
+      },
+      "name": "square",
+      "node": "FnDecl",
+      "params": [
+        {
+          "name": "x",
+          "node": "Param",
+          "type": "i32"
+        }
+      ],
+      "returnType": "i32"
+    },
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "init": {
+              "node": "IntLiteral",
+              "value": 4
+            },
+            "mutable": false,
+            "name": "n",
+            "node": "VarDecl",
+            "type": null
+          },
+          {
+            "init": {
+              "args": [
+                {
+                  "name": "n",
+                  "node": "Identifier"
+                }
+              ],
+              "name": "square",
+              "node": "CallExpr"
+            },
+            "mutable": false,
+            "name": "result",
+            "node": "VarDecl",
+            "type": null
+          },
+          {
+            "node": "PrintStmt",
+            "value": {
+              "name": "result",
+              "node": "Identifier"
+            }
+          }
+        ]
+      },
+      "name": "main",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    }
+  ],
+  "node": "Program"
+}

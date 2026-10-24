@@ -1,0 +1,10 @@
+// Test Case 1
+fn square(x: i32) -> i32 {
+    return x * x;
+}
+
+fn main() {
+    let n = 4;
+    let result = square(n);
+    print(result);
+}

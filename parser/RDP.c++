@@ -1,9 +1,9 @@
 #include<iostream>
 #include<fstream>
 #include<vector>
-// #include "token.h++"
+#include "json.hpp"
 using namespace std;
-
+using json = nlohmann::json;
 
 struct Token{
     string type;
@@ -20,19 +20,19 @@ struct CompileError{
     friend ostream& operator<<(ostream& os,const CompileError& e){os << "ERROR at " << e.line << ": " << e.t << '\n'; return os;}
 };
 
-struct Node{
+struct CST{
     string name;
     Token token;
 
-    vector<Node*> childs;
-    Node* parent;
+    vector<CST*> childs;
+    CST* parent;
 
     int depth;
 
-    // Node(){name = ""; token = {}; childs = vector<Node*>(); parent = nullptr;}
-    ~Node(){for(auto c : childs) delete c;} // nullptr 초기화?
+    // CST(){name = ""; token = {}; childs = vector<CST*>(); parent = nullptr;}
+    ~CST(){for(auto c : childs) delete c;} // nullptr 초기화?
 
-    friend ostream& operator<<(ostream& os, const Node& n){
+    friend ostream& operator<<(ostream& os, const CST& n){
         if(n.parent != nullptr){
             for(int i = 0; i < n.depth; i++) os << "  ";
             if(n.name == "") os << n.token << '\n';
@@ -45,8 +45,8 @@ struct Node{
         return os;
     }
 
-    Node* root(){
-        Node* n = this;
+    CST* root(){
+        CST* n = this;
         while(n->parent != nullptr) n = n->parent;
         return n;
     }
@@ -87,160 +87,203 @@ class RDP{
     Token cur; 
 
     //initially root -> program
-    Node* log;
-    Node* ast;
+    CST* cst;
+    json ast;
 
     //non-terminal
     void record(string name){
-        Node* c = new Node();
+        CST* c = new CST();
         c->name = name;
-        c->parent = log;
-        c->depth = log->depth + 1;
+        c->parent = cst;
+        c->depth = cst->depth + 1;
 
-        log->childs.push_back(c);
-        log = c;        
+        cst->childs.push_back(c);
+        cst = c;        
     }
 
     //terminal
     void record(Token t){
-        Node* c = new Node();
+        CST* c = new CST();
         c->token = t;
-        c->parent = log;
-        c->depth = log->depth + 1;
+        c->parent = cst;
+        c->depth = cst->depth + 1;
         
-        log->childs.push_back(c);
+        cst->childs.push_back(c);
     }
     void rewind(){
-        log = log->parent;
+        cst = cst->parent;
     }
 
 public:
-    RDP(const string& path) : r(path),log(new Node),ast(new Node){log->depth = -1; ast->depth = -1;};
-    ~RDP(){delete log; delete ast;}
+    RDP(const string& path) : r(path),cst(new CST){cst->depth = -1;};
+    ~RDP(){delete cst;}
 
 
     void parse(){
         try {
-            program();
-        }catch(...){log = log->root(); ast = ast->root(); throw;}
+            ast = program();
+            
+        }catch(...){cst = cst->root(); throw;}
     }
 
     // copy constructor 를 지정하지않아 & 를 써야함 : vector 때문에 값 복사가 막힘;
-    Node& getlog(){
-        return *log;
+    CST& getcst(){
+        return *cst;
     }
-    Node& getast(){
-        return *ast;
+    json& getast(){
+        return ast;
     }
 
-    void term(string name){
+    const json& getast() const{
+        return ast;
+    }
+
+    string term(string name){
         cur = r.peek();
         
         if(cur.type == name) {
             record(cur);
             r.advance();
+            return cur.value;
         }
         else throw CompileError(cur, r.getnpos());
     }
     // non-terminal
 
-    void program(){
+    json program(){
         cur = r.peek();
-        
+    
+        json node = {
+            {"node","Program"},
+            {"functions", json::array()},
+        };
         if(cur.type == "FN"){
             record("program");
-
-            while(r.peek().type == "FN") decl();
+        
+            while(r.peek().type == "FN") node["functions"].push_back(decl());
             term("EOF");
 
             rewind();
+            return node;
+        }
+        else if(cur.type == "EOF"){
+            record("program");
+
+            term("EOF");
+
+            rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
         
     };
-    void decl(){
+    json decl(){
         cur = r.peek();
 
         if(cur.type == "FN"){
             record("decl"); 
 
-            fnDecl();
+            json node = fnDecl();
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     };
-    void fnDecl(){
+    json fnDecl(){
         cur = r.peek();
 
+        json node = {
+            {"node", "FnDecl"},
+            {"name",nullptr},
+            {"params",json::array()},
+            {"returnType", nullptr},
+            {"body",nullptr}
+        };
 
         if(cur.type == "FN"){
             record("fnDecl"); 
 
             term("FN");
-            term("ID");
+            node["name"] = term("ID");
             term("LPAREN");
-            if(r.peek().type == "ID") params();
+            if(r.peek().type == "ID") node["params"] = params();
             term("RPAREN");
-            if(r.peek().type == "ARROW"){term("ARROW"); type();}
-            block();
+            if(r.peek().type == "ARROW"){term("ARROW"); node["returnType"] = type();}
+            node["body"] = block();
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     };
-    void params(){
+    json params(){
         cur = r.peek();
 
+        json nodes = json::array();
         if(cur.type == "ID"){
             record("params");
 
-            param();
-            while(r.peek().type == "COMMA"){term("COMMA"); param();}
+            nodes.push_back(param());
+            while(r.peek().type == "COMMA"){term("COMMA"); nodes.push_back(param());}
             
             rewind();
+            return nodes;
         }   
         else throw CompileError(cur, r.getnpos());
     }
 
-    void param(){
+    json param(){
         cur = r.peek();
 
+        json node = {
+            {"node", "Param"},
+            {"name", nullptr},
+            {"type", nullptr}
+        };
         if(cur.type == "ID"){
             record("param");
 
-            term("ID");
+            node["name"] = term("ID");
             term("COLON");
-            type();
+            node["type"] = type();
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
 
-    void type(){
+    json type(){
         cur = r.peek();
 
+        json d;
         if(cur.type == "I32"){
             record("type");
 
-            term("I32");
+            d = term("I32");
 
             rewind();
+            return d;
         }
         else if(cur.type == "BOOL"){
             record("type");
 
-            term("BOOL");  
+            d = term("BOOL");  
 
             rewind();
+            return d;
         }
         else throw CompileError(cur, r.getnpos());
     }
 
-    void block(){
+    json block(){
         cur = r.peek();
 
+        json node = {
+            {"node", "Block"},
+            {"stmts", json::array()},
+        };
         if(cur.type == "LBRACE"){
             record("block");
 
@@ -261,47 +304,58 @@ public:
                     cur.type == "TRUE" ||
                     cur.type == "FALSE" ||
                     cur.type == "LPAREN") 
-            {stmt(); cur = r.peek();}
+            {node["stmts"].push_back(stmt()); cur = r.peek();}
             term("RBRACE");
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
 
-    void stmt(){
+    json stmt(){
         cur = r.peek();
 
+        json node;
         if(cur.type == "LET"){
             record("stmt");
 
-            letStmt();
+            node = letStmt();
 
             rewind();
+            return  node;
+
         }else if(cur.type == "IF"){
             record("stmt");
 
-            ifStmt();
+            node = ifStmt();
 
             rewind();
+            return  node;
+
         }else if(cur.type == "WHILE"){
             record("stmt");
 
-            whileStmt();
+            node = whileStmt();
 
             rewind();
+            return  node;
+
         }else if(cur.type == "RETURN"){
             record("stmt");
 
-            returnStmt();
+            node = returnStmt();
 
             rewind();
+            return  node;
+
         }else if(cur.type == "PRINT"){
             record("stmt");
 
-            printStmt();
+            node = printStmt();
 
             rewind();
+            return  node;
         }else if(cur.type == "MINUS" || 
                     cur.type == "NOT" ||
                     cur.type == "ID" ||
@@ -309,69 +363,99 @@ public:
                     cur.type == "TRUE" ||
                     cur.type == "FALSE" ||
                     cur.type == "LPAREN")
-        {record("stmt"); exprStmt(); rewind();}
+        {
+            record("stmt"); 
+            node = exprStmt(); 
+            rewind(); 
+            return node;
+        }
 
         else throw CompileError(cur, r.getnpos());
     }
-    void letStmt(){
+    json letStmt(){
         cur = r.peek();
 
+        json node = {
+            {"node", "VarDecl"},
+            {"name", nullptr},
+            {"mutable", false},
+            {"type", nullptr},
+            {"init", nullptr}
+        };
         if(cur.type == "LET"){
             record("letStmt");
 
             term("LET");
-            if(r.peek().type == "MUT") term("MUT");
-            term("ID");
-            if(r.peek().type == "COLON"){term("COLON"); type();}
+            if(r.peek().type == "MUT") {term("MUT"); node["mutable"] = true;}
+            node["name"] = term("ID");
+            if(r.peek().type == "COLON"){term("COLON"); node["type"] = type();}
             term("ASSIGN");
-            expr();
+            node["init"] = expr();
             term("SEMI");
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
-    void ifStmt(){
+    json ifStmt(){
         cur = r.peek();
 
         if(cur.type == "IF"){
             record("ifStmt");
 
+            json node = {
+                {"node", "IfStmt"},
+                {"cond", nullptr},
+                {"then", nullptr},
+                {"else", nullptr}
+            };
             term("IF");
-            expr();
-            block();
+            node["cond"] = expr();
+            node["then"] = block();
             if(r.peek().type == "ELSE"){
                 term("ELSE");
                 cur = r.peek();
-                if(cur.type == "LBRACE") block();
-                else if(cur.type == "IF") ifStmt();
+                if(cur.type == "LBRACE") node["else"] = block();
+                else if(cur.type == "IF") node["else"] = ifStmt();
                 else throw CompileError(cur, r.getnpos());
             }
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
-    void whileStmt(){
+    json whileStmt(){
         cur = r.peek();
 
         if(cur.type == "WHILE"){
             record("whileStmt");
 
+            json node = {
+                {"node", "WhileStmt"},
+                {"cond", nullptr},
+                {"body", nullptr}
+            };
             term("WHILE");
-            expr();
-            block();
+            node["cond"] = expr();
+            node["body"] = block();
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
-    void returnStmt(){
+    json returnStmt(){
         cur = r.peek();
 
         if(cur.type == "RETURN"){
             record("returnStmt");
 
+            json node = {
+                {"node", "ReturnStmt"},
+                {"value", nullptr}
+            };
             term("RETURN");
             cur = r.peek();
             if(cur.type == "MINUS" || 
@@ -381,30 +465,36 @@ public:
                     cur.type == "TRUE" ||
                     cur.type == "FALSE" ||
                     cur.type == "LPAREN")
-            {expr();}
+            {node["value"] = expr();}
             term("SEMI");
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
-    void printStmt(){
+    json printStmt(){
         cur = r.peek();
 
         if(cur.type == "PRINT"){
             record("printStmt");
 
+            json node = {
+                {"node", "PrintStmt"},
+                {"value", nullptr}
+            };
             term("PRINT");
             term("LPAREN");
-            expr();
+            node["value"] = expr();
             term("RPAREN");
             term("SEMI");
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
-    void exprStmt(){
+    json exprStmt(){
         cur = r.peek();
 
         if(cur.type == "MINUS" || 
@@ -417,17 +507,21 @@ public:
         {   
             record("exprStmt");
 
-            expr();
+            json node = {
+                {"node", "ExprStmt"},
+                {"expr", expr()}
+            };
             term("SEMI");
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
 
     }
     
     // 연산자 우선순위 고려
-    void expr(){
+    json expr(){
         cur = r.peek();
 
         if(cur.type == "MINUS" || 
@@ -440,15 +534,16 @@ public:
         {
             record("expr");
 
-            assignExpr();
+            json node = assignExpr();
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
 
     // 우측 결합
-    void assignExpr(){
+    json assignExpr(){
         cur = r.peek();
 
         if(cur.type == "MINUS" || 
@@ -461,17 +556,27 @@ public:
         {
             record("assignExpr");
 
-            logicalOrExpr();
-            if(r.peek().type == "ASSIGN") {term("ASSIGN"); assignExpr();}
+            json target = logicalOrExpr();
+            if(r.peek().type == "ASSIGN") {
+                term("ASSIGN");
+                json node = {
+                    {"node", "AssignExpr"},
+                    {"target", target},
+                    {"value", assignExpr()}
+                };
+                rewind();
+                return node;
+            }
 
             rewind();
+            return target;
         }
         else throw CompileError(cur, r.getnpos());
     }
 
     // 아래부터 동일한 우선순위라면, 순서 상관없어서 한번에 들어감.
 
-    void logicalOrExpr(){
+    json logicalOrExpr(){
         cur = r.peek();
 
         if(cur.type == "MINUS" || 
@@ -484,20 +589,25 @@ public:
         {
             record("logicalOrExpr");
 
-            logicalAndExpr();
-            while(r.peek().type == "OR")
-            {
-                term("OR");
-                logicalAndExpr();
+            json node = logicalAndExpr();
+            while(r.peek().type == "OR") {
+                string op = term("OR");
+                json right = logicalAndExpr();
+                node = {
+                    {"node", "BinaryExpr"},
+                    {"op", op},
+                    {"left", node},
+                    {"right", right}
+                };
             }
-            while(r.peek().type == "OR") {term("OR"); logicalAndExpr();}
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
 
-    void logicalAndExpr(){
+    json logicalAndExpr(){
         cur = r.peek();
 
         if(cur.type == "MINUS" || 
@@ -510,14 +620,24 @@ public:
         {
             record("logicalAndExpr");
 
-            equalityExpr();
-            while(r.peek().type == "AND") {term("AND"); equalityExpr();}
+            json node = equalityExpr();
+            while(r.peek().type == "AND") {
+                string op = term("AND");
+                json right = equalityExpr();
+                node = {
+                    {"node", "BinaryExpr"},
+                    {"op", op},
+                    {"left", node},
+                    {"right", right}
+                };
+            }
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
-    void equalityExpr(){
+    json equalityExpr(){
         cur = r.peek();
 
         if(cur.type == "MINUS" || 
@@ -530,7 +650,7 @@ public:
         {
             record("equalityExpr");
 
-            additiveExpr();
+            json node = additiveExpr();
             cur = r.peek();
             while(cur.type == "EQ" || 
                 cur.type == "NEQ" ||
@@ -539,16 +659,23 @@ public:
                 cur.type == "GT" ||
                 cur.type == "GE")
             {
-                term(cur.type);
-                additiveExpr();
+                string op = term(cur.type);
+                json right = additiveExpr();
+                node = {
+                    {"node", "BinaryExpr"},
+                    {"op", op},
+                    {"left", node},
+                    {"right", right}
+                };
                 cur = r.peek();
             }
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
-    void additiveExpr(){
+    json additiveExpr(){
         cur = r.peek();
 
         if(cur.type == "MINUS" || 
@@ -561,20 +688,27 @@ public:
         {
             record("additiveExpr");
 
-            multiplicativeExpr();
+            json node = multiplicativeExpr();
             cur = r.peek();
             while(cur.type == "PLUS" || cur.type == "MINUS")
             {
-                term(cur.type);
-                multiplicativeExpr();
+                string op = term(cur.type);
+                json right = multiplicativeExpr();
+                node = {
+                    {"node", "BinaryExpr"},
+                    {"op", op},
+                    {"left", node},
+                    {"right", right}
+                };
                 cur = r.peek();
             }
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
-    void multiplicativeExpr(){
+    json multiplicativeExpr(){
         cur = r.peek();
 
         if(cur.type == "MINUS" || 
@@ -587,37 +721,52 @@ public:
         {
             record("multiplicativeExpr");
 
-            unaryExpr();
+            json node = unaryExpr();
             cur = r.peek();
             while(cur.type == "STAR" || cur.type == "SLASH")
             {
-                term(cur.type);
-                unaryExpr();
+                string op = term(cur.type);
+                json right = unaryExpr();
+                node = {
+                    {"node", "BinaryExpr"},
+                    {"op", op},
+                    {"left", node},
+                    {"right", right}
+                };
                 cur = r.peek();
             }
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
 
-    void unaryExpr(){
+    json unaryExpr(){
         cur = r.peek();
 
         if(cur.type == "MINUS"){
             record("unaryExpr");
 
-            term("MINUS");
-            unaryExpr();
+            json node = {
+                {"node", "UnaryExpr"},
+                {"op", term("MINUS")},
+                {"operand", unaryExpr()}
+            };
 
             rewind();
+            return node;
         }else if(cur.type == "NOT"){
             record("unaryExpr");
 
-            term("NOT");
-            unaryExpr();
+            json node = {
+                {"node", "UnaryExpr"},
+                {"op", term("NOT")},
+                {"operand", unaryExpr()}
+            };
 
             rewind();
+            return node;
         }
         else if(cur.type == "ID" ||
                 cur.type == "INT" ||
@@ -627,22 +776,28 @@ public:
         {
             record("unaryExpr");
 
-            primaryExpr();
+            json node = primaryExpr();
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
 
     }
     
-    void primaryExpr(){
+    json primaryExpr(){
         cur = r.peek();
 
         if(cur.type == "ID"){
             record("primaryExpr");
 
-            term("ID");
+            string name = term("ID");
             if(r.peek().type == "LPAREN"){
+                json node = {
+                    {"node", "CallExpr"},
+                    {"name", name},
+                    {"args", json::array()}
+                };
                 term("LPAREN");
                 cur = r.peek();
                 if(cur.type == "MINUS" || 
@@ -653,42 +808,68 @@ public:
                     cur.type == "FALSE" ||
                     cur.type == "LPAREN")
                 {
-                    args();
+                    node["args"] = args();
                 }
                 term("RPAREN");
+
+                rewind();
+                return node;
             }
 
+            json node = {
+                {"node", "Identifier"},
+                {"name", name}
+            };
             rewind();
+            return node;
         }else if(cur.type == "INT"){
             record("primaryExpr");
 
-            term("INT");
+            json node = {
+                {"node", "IntLiteral"},
+                {"value", atoi(term("INT").c_str())}
+            };
 
             rewind();
+            return node;
         }else if(cur.type == "TRUE"){
             record("primaryExpr");
 
             term("TRUE");
+            json node = {
+                {"node", "BoolLiteral"},
+                {"value", true}
+            };
 
             rewind();
+            return node;
         }else if(cur.type == "FALSE"){
             record("primaryExpr");
 
             term("FALSE");
-            
+            json node = {
+                {"node", "BoolLiteral"},
+                {"value", false}
+            };
+
             rewind();
+            return node;
         }else if(cur.type == "LPAREN"){
             record("primaryExpr");
 
             term("LPAREN");
-            expr();
+            json node = {
+                {"node", "ParenExpr"},
+                {"expr", expr()}
+            };
             term("RPAREN");
 
             rewind();
+            return node;
         }
         else throw CompileError(cur, r.getnpos());
     }
-    void args(){
+    json args(){
         cur = r.peek();
 
         if(cur.type == "MINUS" || 
@@ -701,13 +882,15 @@ public:
         {
             record("args");
 
-            expr();
+            json nodes = json::array();
+            nodes.push_back(expr());
             while(r.peek().type == "COMMA"){
                 term("COMMA");
-                expr();
+                nodes.push_back(expr());
             }
 
             rewind();
+            return nodes;
         }
         else throw CompileError(cur, r.getnpos());
 
@@ -716,14 +899,14 @@ public:
 };
 
 
-int main(){
+int main(int argc, char* argv[]){
 
     // // reader test
     // Reader r("./test1.txt"); 
     // Token t = r.peek();
 
     // // Tree test
-    // Node n,n1,n2;
+    // CST n,n1,n2;
     // n.token = t; 
     // r.advance();
     // n1.token = r.peek();
@@ -736,19 +919,24 @@ int main(){
 
 
     // RDP Test
-    
-    RDP rdp("./base_03_tokens.txt");
-    fstream logf;
-    logf.open("./base_03.log", ios::out);
+    if(argc != 4){cout << argv[0] << " tokenfile logfile jsonfile"; return -1;}
+
+    RDP rdp(argv[1]);
+    ofstream cstf;
+    ofstream astf;
+    cstf.open(argv[2]);
+    astf.open(argv[3]);
 
     try{
         rdp.parse();
-        logf << rdp.getlog();    
-        logf << "ACCEPT\n";
+        cstf << rdp.getcst();    
+        cstf << "ACCEPT\n";
+
+        astf << rdp.getast().dump(2) << '\n';
 
     }catch(CompileError& e){
-        logf << rdp.getlog();    
-        logf << e;
+        cstf << rdp.getcst();    
+        cstf << e;
     }
 
     return 0;

@@ -1,0 +1,196 @@
+{
+  "functions": [
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "init": {
+              "node": "IntLiteral",
+              "value": 0
+            },
+            "mutable": true,
+            "name": "total",
+            "node": "VarDecl",
+            "type": null
+          },
+          {
+            "init": {
+              "node": "IntLiteral",
+              "value": 1
+            },
+            "mutable": true,
+            "name": "i",
+            "node": "VarDecl",
+            "type": null
+          },
+          {
+            "body": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "expr": {
+                    "node": "AssignExpr",
+                    "target": {
+                      "name": "total",
+                      "node": "Identifier"
+                    },
+                    "value": {
+                      "left": {
+                        "name": "total",
+                        "node": "Identifier"
+                      },
+                      "node": "BinaryExpr",
+                      "op": "+",
+                      "right": {
+                        "name": "i",
+                        "node": "Identifier"
+                      }
+                    }
+                  },
+                  "node": "ExprStmt"
+                },
+                {
+                  "expr": {
+                    "node": "AssignExpr",
+                    "target": {
+                      "name": "i",
+                      "node": "Identifier"
+                    },
+                    "value": {
+                      "left": {
+                        "name": "i",
+                        "node": "Identifier"
+                      },
+                      "node": "BinaryExpr",
+                      "op": "+",
+                      "right": {
+                        "node": "IntLiteral",
+                        "value": 1
+                      }
+                    }
+                  },
+                  "node": "ExprStmt"
+                }
+              ]
+            },
+            "cond": {
+              "left": {
+                "name": "i",
+                "node": "Identifier"
+              },
+              "node": "BinaryExpr",
+              "op": "<=",
+              "right": {
+                "name": "n",
+                "node": "Identifier"
+              }
+            },
+            "node": "WhileStmt"
+          },
+          {
+            "node": "ReturnStmt",
+            "value": {
+              "name": "total",
+              "node": "Identifier"
+            }
+          }
+        ]
+      },
+      "name": "sum_to_n",
+      "node": "FnDecl",
+      "params": [
+        {
+          "name": "n",
+          "node": "Param",
+          "type": "i32"
+        }
+      ],
+      "returnType": "i32"
+    },
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "init": {
+              "node": "IntLiteral",
+              "value": 5
+            },
+            "mutable": true,
+            "name": "count",
+            "node": "VarDecl",
+            "type": null
+          },
+          {
+            "body": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "name": "count",
+                    "node": "Identifier"
+                  }
+                },
+                {
+                  "expr": {
+                    "node": "AssignExpr",
+                    "target": {
+                      "name": "count",
+                      "node": "Identifier"
+                    },
+                    "value": {
+                      "left": {
+                        "name": "count",
+                        "node": "Identifier"
+                      },
+                      "node": "BinaryExpr",
+                      "op": "-",
+                      "right": {
+                        "node": "IntLiteral",
+                        "value": 1
+                      }
+                    }
+                  },
+                  "node": "ExprStmt"
+                }
+              ]
+            },
+            "cond": {
+              "left": {
+                "name": "count",
+                "node": "Identifier"
+              },
+              "node": "BinaryExpr",
+              "op": ">",
+              "right": {
+                "node": "IntLiteral",
+                "value": 0
+              }
+            },
+            "node": "WhileStmt"
+          },
+          {
+            "node": "PrintStmt",
+            "value": {
+              "args": [
+                {
+                  "node": "IntLiteral",
+                  "value": 10
+                }
+              ],
+              "name": "sum_to_n",
+              "node": "CallExpr"
+            }
+          }
+        ]
+      },
+      "name": "main",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    }
+  ],
+  "node": "Program"
+}
