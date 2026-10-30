@@ -1,6 +1,10 @@
 #include<iostream>
 #include<fstream>
 #include<vector>
+#include<map>
+#include<set>
+#include<stdexcept>
+#include<string>
 #include "json.hpp"
 using namespace std;
 using json = nlohmann::json;
@@ -13,11 +17,21 @@ struct Token{
     friend ostream& operator<<(ostream& os,const Token& t){os << t.type << "('" << t.value << "')"; return os;}
 };
 
-struct CompileError{
+struct ParseError{
     Token t;
     int line;
-    CompileError(const Token& t, const int& line): t(t), line(line){};
-    friend ostream& operator<<(ostream& os,const CompileError& e){os << "ERROR at " << e.line << ": " << e.t << '\n'; return os;}
+    ParseError(const Token& t, const int& line): t(t), line(line){};
+    friend ostream& operator<<(ostream& os,const ParseError& e){os << "ERROR at " << e.line << ": " << e.t << '\n'; return os;}
+};
+struct SemanticError{
+    int line;
+    string code;
+    friend ostream& operator<<(ostream& os,const SemanticError& e){
+        if(e.line > 0) os << "ERROR at " << e.line << ": ";
+        else os << "ERROR: ";
+        os << e.code << '\n';
+        return os;
+    }
 };
 
 struct CST{
@@ -146,7 +160,7 @@ public:
             r.advance();
             return cur.value;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     // non-terminal
 
@@ -174,7 +188,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
         
     };
     json decl(){
@@ -188,7 +202,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     };
     json fnDecl(){
         cur = r.peek();
@@ -215,7 +229,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     };
     json params(){
         cur = r.peek();
@@ -230,7 +244,7 @@ public:
             rewind();
             return nodes;
         }   
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
 
     json param(){
@@ -251,7 +265,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
 
     json type(){
@@ -274,7 +288,7 @@ public:
             rewind();
             return d;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
 
     json block(){
@@ -310,7 +324,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
 
     json stmt(){
@@ -370,7 +384,7 @@ public:
             return node;
         }
 
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json letStmt(){
         cur = r.peek();
@@ -396,7 +410,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json ifStmt(){
         cur = r.peek();
@@ -418,13 +432,13 @@ public:
                 cur = r.peek();
                 if(cur.type == "LBRACE") node["else"] = block();
                 else if(cur.type == "IF") node["else"] = ifStmt();
-                else throw CompileError(cur, r.getnpos());
+                else throw ParseError(cur, r.getnpos());
             }
 
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json whileStmt(){
         cur = r.peek();
@@ -444,7 +458,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json returnStmt(){
         cur = r.peek();
@@ -471,7 +485,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json printStmt(){
         cur = r.peek();
@@ -492,7 +506,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json exprStmt(){
         cur = r.peek();
@@ -516,7 +530,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
 
     }
     
@@ -539,7 +553,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
 
     // 우측 결합
@@ -571,7 +585,7 @@ public:
             rewind();
             return target;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
 
     // 아래부터 동일한 우선순위라면, 순서 상관없어서 한번에 들어감.
@@ -604,7 +618,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
 
     json logicalAndExpr(){
@@ -635,7 +649,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json equalityExpr(){
         cur = r.peek();
@@ -673,7 +687,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json additiveExpr(){
         cur = r.peek();
@@ -706,7 +720,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json multiplicativeExpr(){
         cur = r.peek();
@@ -739,7 +753,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
 
     json unaryExpr(){
@@ -781,7 +795,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
 
     }
     
@@ -867,7 +881,7 @@ public:
             rewind();
             return node;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
     }
     json args(){
         cur = r.peek();
@@ -892,12 +906,302 @@ public:
             rewind();
             return nodes;
         }
-        else throw CompileError(cur, r.getnpos());
+        else throw ParseError(cur, r.getnpos());
 
     }
 
 };
 
+[[noreturn]] void fail(const string& code){
+    throw SemanticError{0, code};
+}
+
+class SymbolTable{
+public:
+    int nextID;
+    struct Variable{
+        string type;
+        bool isMutable;
+        int id;
+    };
+
+    struct Function{
+        vector<string> parameterTypes;
+        string returnType;
+    };
+    struct Scope {
+        map<string, Variable> variables;
+        int idMark;  
+    };
+
+private:
+    vector<Scope> scopes;
+
+public:
+    map<string, Function> functions;
+
+    void pushScope(){
+        scopes.push_back(Scope{{},0});
+    }
+
+    void popScope(){
+        if(scopes.empty()) throw logic_error("cannot pop an empty symbol scope");
+        nextID = scopes.back().idMark;
+        scopes.pop_back();
+    }
+
+    //Variable, Argument
+    void insertVar(const string& name, const string& type, bool isMutable){
+        if(!scopes.back().variables.emplace(name, Variable{type, isMutable, nextID++}).second) 
+            fail("DUPLICATE " + name);
+    }
+
+    //Global Function 
+    void insertFunc(const string& name, const vector<string>& paramtypes,const string& rettype){
+        if(!functions.emplace(name,Function{paramtypes, rettype}).second) 
+            fail("DUPLICATE " + name);
+    }
+
+    const Variable* findVariable(const string& name) const{
+        for(auto scope = scopes.rbegin(); scope != scopes.rend(); ++scope){
+            auto symbol = scope->variables.find(name);
+            if(symbol != scope->variables.end()) return &symbol->second;
+        }
+        return nullptr;
+    }
+};
+
+class semanticAnalyzer{
+    json& ast;
+    SymbolTable st;
+    string log;
+    int i = 0;
+
+    //record_block / use & declare
+    void record(){
+        i++;
+    }
+    void rewind(){
+        i--;
+    }
+
+    //insertVar
+    void declareVar(json& j){
+        const string& t = j["type"].is_null() ? "" : j["type"];
+        bool isMut = j["mutable"].is_null() ? false : j["mutable"].get<bool>();
+        j["id"] = st.nextID;
+        st.insertVar(j["name"],t,isMut);
+    }
+
+    const SymbolTable::Variable& lookupVariable(const string& name) const{
+        const SymbolTable::Variable* variable = st.findVariable(name);
+        if(variable == nullptr) fail("UNDECLARED_VAR " + name);
+        return *variable; 
+    }
+
+    void registerFunctions(){
+        log = "functions: ";
+        for(json& function : ast["functions"]){
+            vector<string> paramtypes;
+            for(const json& param : function["params"])
+                paramtypes.push_back(param["type"]);
+            
+            string rettype = function["returnType"].is_null() ? "" : function["returnType"];
+            st.insertFunc(function["name"],paramtypes,rettype);
+
+            log += function["name"] + "(";
+            for(auto pat : paramtypes) log += pat + ","; log.pop_back(); 
+            log += ") -> " + rettype;
+        }
+        log += '\n';
+    }
+
+    void analyzeFunction(json& function){
+        string& expectedReturnType = st.functions[function["name"]].returnType;
+        log += "fn " + function["name"] + '\n';
+        st.pushScope();
+        for(json& param : function["params"]){
+            
+            declareVar(param);
+        }
+
+        string returnType = analyzeBlock(function["body"],false);
+        if(expectedReturnType == ""){
+            expectedReturnType = returnType;
+        }
+        else if(returnType == "") fail("MISSING_RETURN");
+        else if(returnType != expectedReturnType) fail("TYPE_MISMATCH");        
+        st.popScope();
+    }
+
+    string analyzeBlock(json& block, bool createScope){
+        if(createScope) st.pushScope();
+        string statementReturns;
+        for(json& statement : block["stmts"]){
+            statementReturns = analyzeStatement(statement);
+            if(statementReturns != "") break;
+        }
+        if(createScope) st.popScope();
+        return statementReturns;
+    }
+
+    string analyzeStatement(json& statement){
+        string kind = statement["node"];
+        if(kind == "VarDecl"){
+            const string& initType = analyzeExpression(statement["init"]);
+            if (statement["type"].is_null()) statement["type"] = initType;
+            else if(statement["type"] != initType) fail("TYPE_MISMATCH");
+            declareVar(statement);
+            return "";
+        }
+        if(kind == "IfStmt"){
+            // IF ELSE 모두 존재하고 타입이 같다고 가정
+            if(analyzeExpression(statement["cond"]) != "bool") fail("TYPE_MISMATCCH");
+            string thenReturns = analyzeBlock(statement["then"], true);
+            if(statement["else"].is_null()) return ""; // thentype return or null -> 모름
+            string elseReturns = analyzeStatement(statement["else"]);
+            return thenReturns != "" ? thenReturns : elseReturns;
+        }
+        if(kind == "WhileStmt"){
+            if(analyzeExpression(statement["cond"]) != "bool") fail("TYPE_MISMATCCH");
+            string bodyReturns = analyzeBlock(statement["body"], true);
+            return bodyReturns;
+        }
+        if(kind == "ReturnStmt"){
+            json& value = statement["value"];
+            if(!value.is_null()) return analyzeExpression(value);
+            return "";
+        }
+        if(kind == "PrintStmt"){
+            analyzeExpression(statement.at("value"));
+            return "";
+        }
+        if(kind == "ExprStmt"){
+            analyzeExpression(statement.at("expr"));
+            return "";
+        }
+        fail("ERROR");
+    }
+
+    string analyzeExpression(json& expression){
+        string kind = expression["node"];
+        if(kind == "IntLiteral") {return expression["type"] = "i32";}
+        if(kind == "BoolLiteral") {return expression["type"] = "bool";}
+        if(kind == "Identifier"){
+            auto var = lookupVariable(expression["name"]);
+            expression["decl"] = var.id;
+            return expression["type"] = var.type;
+        }
+        if(kind == "ParenExpr") {return expression["type"] = analyzeExpression(expression.at("expr"));}
+        if(kind == "CallExpr"){
+            const string name = expression["name"];
+            auto function = st.functions.find(name);
+            if(function == st.functions.end()){
+                if(st.findVariable(name) == nullptr) fail("UNDECLARED_FUNC");
+                else fail("NOT_A_FUNCTION");
+            } 
+
+            json& arguments = expression["args"];
+            int cnt = arguments.size();
+            int expectedcnt = function->second.parameterTypes.size();
+
+            if(cnt > expectedcnt) fail("too many args");
+            else if(cnt < expectedcnt) fail("few args");
+            
+            for (size_t i = 0; i < cnt; ++i){
+                if(function->second.parameterTypes[i] != analyzeExpression(arguments[i])) 
+                    fail("TYPE_MISMATCH");
+            }
+            return expression["type"] = function->second.returnType;
+        }
+        if(kind == "UnaryExpr"){
+            const string op = expression["op"];
+            string operandType = analyzeExpression(expression["operand"]);
+            if(op == "-"){
+                if(operandType != "i32") fail("TYPE_MISMATCH");
+                
+                return expression["type"] = "i32";
+            }
+            if(op == "!"){
+                if(operandType != "bool") fail("TYPE_MISMATCH");
+                return expression["type"] = "bool";
+            }
+        }
+        if(kind == "BinaryExpr"){
+            const string op = expression["op"];
+            string leftType = analyzeExpression(expression["left"]);
+            string rightType = analyzeExpression(expression["right"]);
+            
+            //for check chained comparison
+            const json& leftExpr = expression["left"];
+            
+            auto iscompare = [&](){
+                return leftExpr["node"] == "BinaryExpr" && 
+                    ((leftExpr["op"] == "&&") || (leftExpr["op"] == "||") || 
+                    (leftExpr["op"] == "==") || (leftExpr["op"] == "!=") ||
+                    (leftExpr["op"] == "<") || (leftExpr["op"] == "<=") ||
+                    (leftExpr["op"] == ">") || (leftExpr["op"] == ">="));
+            };
+
+            if(leftType == "" || rightType == ""){
+                fail("TYPE_MISMATCH");
+            }
+            if(op == "+" || op == "-" || op == "*" || op == "/"){
+                if(leftType != "i32") fail("TYPE_MISMATCH");
+                if(rightType != "i32") fail("TYPE_MISMATCH");
+                return expression["type"] = "i32";
+            }
+            if(op == "&&" || op == "||"){
+                if(leftType != "bool") fail("TYPE_MISMATCH");
+                if(rightType != "bool") fail("TYPE_MISMATCH");
+                
+                if(iscompare()) fail("CHAINED_COMPARISON");
+                return expression["type"] = "bool";
+            }
+            if(op == "==" || op == "!="){
+                if(leftType != rightType) fail("TYPE_MISMATCH");
+                if(iscompare()) fail("CHAINED_COMPARISON");
+                return expression["type"] = "bool";
+            }
+            if(op == "<" || op == "<=" || op == ">" || op == ">="){
+                if(leftType != "i32") fail("TYPE_MISMATCH");
+                if(rightType != "i32") fail("TYPE_MISMATCH");
+                if(iscompare()) fail("CHAINED_COMPARISON");
+                return expression["type"] = "bool";
+            }
+        }
+        if(kind == "AssignExpr"){
+            const json& target = expression["target"];
+            if(target["node"] != "Identifier") fail("INVALID_ASSIGN");
+
+            const SymbolTable::Variable& variable = lookupVariable(target["name"]);
+            if(!variable.isMutable) fail("IMMUTABLE_ASSIGN");
+
+            string valueType = analyzeExpression(expression.at("value"));
+            fail("TYPE_MISMATCH");
+            return expression["type"] = variable.type;
+        }
+        fail("ERROR");
+    }
+
+public:
+    explicit semanticAnalyzer(json& program) : ast(program){}
+
+    void process(){
+        Program();
+    }
+
+    void Program(){
+        registerFunctions();
+        for(json& function : ast["functions"]){
+            analyzeFunction(function);
+        } 
+    }
+
+    string log(){
+        st.functions    
+    }
+};
 
 int main(int argc, char* argv[]){
 
@@ -922,21 +1226,31 @@ int main(int argc, char* argv[]){
     if(argc != 4){cout << argv[0] << " tokenfile logfile jsonfile"; return -1;}
 
     RDP rdp(argv[1]);
-    ofstream cstf;
+    
+    ofstream logf;
     ofstream astf;
-    cstf.open(argv[2]);
+    logf.open(argv[2]);
     astf.open(argv[3]);
 
     try{
         rdp.parse();
-        cstf << rdp.getcst();    
-        cstf << "ACCEPT\n";
+        logf << rdp.getcst();    
+        logf << "ACCEPT\n";
+
+        json& ast = rdp.getast();
+        semanticAnalyzer analyzer(ast);
+        analyzer.process();
+
+        logf << 
+
 
         astf << rdp.getast().dump(2) << '\n';
 
-    }catch(CompileError& e){
-        cstf << rdp.getcst();    
-        cstf << e;
+    }catch(ParseError& e){
+        logf << rdp.getcst();    
+        logf << e;
+    }catch(SemanticError& e){
+        logf << e;
     }
 
     return 0;
