@@ -1031,14 +1031,11 @@ class semanticAnalyzer{
         string rettype = typeFromJson(function["returnType"]);
         string l = name;
         l += '(';
-        for(const json& param : function["params"]){
-            paramtypes.push_back(param["type"]);
-            
-            for(auto pat : paramtypes) l += pat + ", ";
-            if(l.back() == ' ') {
-                l.pop_back();
-                l.pop_back();
-            }
+        for(const json& param : function["params"]) paramtypes.push_back(param["type"]);
+        for(auto pat : paramtypes) l += pat + ", ";
+        if(l.back() == ' ') {
+            l.pop_back();
+            l.pop_back();
         }
         l += ')';
         if(rettype != "") l += " -> " + rettype;
@@ -1331,7 +1328,7 @@ int main(int argc, char* argv[]){
     ofstream logf;
     ofstream astf;
     logf.open(argv[2]);
-    astf.open(argv[3]);
+    
 
     try{
         rdp.parse();
@@ -1346,6 +1343,7 @@ int main(int argc, char* argv[]){
         logf << "OK\n";
 
         removeTokenInfo(ast);
+        astf.open(argv[3]);
         astf << ast.dump(2) << '\n';
 
     }catch(ParseError& e){

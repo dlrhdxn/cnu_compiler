@@ -1,0 +1,253 @@
+{
+  "node": "Program",
+  "functions": [
+    {
+      "node": "FnDecl",
+      "name": "main",
+      "params": [],
+      "returnType": null,
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "node": "VarDecl",
+            "name": "total",
+            "mutable": true,
+            "type": null,
+            "id": 0,
+            "init": {
+              "node": "CallExpr",
+              "name": "add_ten",
+              "type": "i32",
+              "args": [
+                {
+                  "node": "IntLiteral",
+                  "value": 1,
+                  "type": "i32"
+                }
+              ]
+            }
+          },
+          {
+            "node": "IfStmt",
+            "cond": {
+              "node": "BinaryExpr",
+              "op": ">",
+              "type": "bool",
+              "left": {
+                "node": "Identifier",
+                "name": "total",
+                "decl": 0,
+                "type": "i32"
+              },
+              "right": {
+                "node": "IntLiteral",
+                "value": 5,
+                "type": "i32"
+              }
+            },
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "VarDecl",
+                  "name": "total",
+                  "mutable": false,
+                  "type": null,
+                  "id": 1,
+                  "init": {
+                    "node": "BoolLiteral",
+                    "value": false,
+                    "type": "bool"
+                  }
+                },
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "node": "Identifier",
+                    "name": "total",
+                    "decl": 1,
+                    "type": "bool"
+                  }
+                }
+              ]
+            },
+            "else": null
+          },
+          {
+            "node": "ExprStmt",
+            "expr": {
+              "node": "AssignExpr",
+              "type": null,
+              "target": {
+                "node": "ParenExpr",
+                "type": "i32",
+                "expr": {
+                  "node": "Identifier",
+                  "name": "total",
+                  "decl": 0,
+                  "type": "i32"
+                }
+              },
+              "value": {
+                "node": "BinaryExpr",
+                "op": "*",
+                "type": "i32",
+                "left": {
+                  "node": "Identifier",
+                  "name": "total",
+                  "decl": 0,
+                  "type": "i32"
+                },
+                "right": {
+                  "node": "IntLiteral",
+                  "value": 2,
+                  "type": "i32"
+                }
+              }
+            }
+          },
+          {
+            "node": "ExprStmt",
+            "expr": {
+              "node": "CallExpr",
+              "name": "show",
+              "type": null,
+              "args": [
+                {
+                  "node": "Identifier",
+                  "name": "total",
+                  "decl": 0,
+                  "type": "i32"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "node": "FnDecl",
+      "name": "add_ten",
+      "params": [
+        {
+          "node": "Param",
+          "name": "x",
+          "type": "i32",
+          "id": 0
+        }
+      ],
+      "returnType": "i32",
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "node": "VarDecl",
+            "name": "x",
+            "mutable": false,
+            "type": null,
+            "id": 1,
+            "init": {
+              "node": "BinaryExpr",
+              "op": "+",
+              "type": "i32",
+              "left": {
+                "node": "Identifier",
+                "name": "x",
+                "decl": 0,
+                "type": "i32"
+              },
+              "right": {
+                "node": "IntLiteral",
+                "value": 10,
+                "type": "i32"
+              }
+            }
+          },
+          {
+            "node": "VarDecl",
+            "name": "small",
+            "mutable": false,
+            "type": null,
+            "id": 2,
+            "init": {
+              "node": "BinaryExpr",
+              "op": "<",
+              "type": "bool",
+              "left": {
+                "node": "Identifier",
+                "name": "x",
+                "decl": 1,
+                "type": "i32"
+              },
+              "right": {
+                "node": "IntLiteral",
+                "value": 20,
+                "type": "i32"
+              }
+            }
+          },
+          {
+            "node": "IfStmt",
+            "cond": {
+              "node": "Identifier",
+              "name": "small",
+              "decl": 2,
+              "type": "bool"
+            },
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "ReturnStmt",
+                  "value": {
+                    "node": "Identifier",
+                    "name": "x",
+                    "decl": 1,
+                    "type": "i32"
+                  }
+                }
+              ]
+            },
+            "else": null
+          },
+          {
+            "node": "ReturnStmt",
+            "value": {
+              "node": "IntLiteral",
+              "value": 0,
+              "type": "i32"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "node": "FnDecl",
+      "name": "show",
+      "params": [
+        {
+          "node": "Param",
+          "name": "v",
+          "type": "i32",
+          "id": 0
+        }
+      ],
+      "returnType": null,
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "node": "PrintStmt",
+            "value": {
+              "node": "Identifier",
+              "name": "v",
+              "decl": 0,
+              "type": "i32"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

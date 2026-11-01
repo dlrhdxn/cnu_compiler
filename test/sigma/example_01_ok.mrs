@@ -1,0 +1,31 @@
+// expect: OK
+// A correct program. The log ends with OK and the annotated JSON is written.
+// Things to check in the JSON (python3 ast_view.py example_01_ok.json):
+//   - main calls add_ten and show before they are defined (forward call)
+//   - shadowing: each `let` makes a new variable with a new id
+//   - type inference: `small` has no type written, its init is bool
+//   - show() has no return type: fine as a statement, its CallExpr type is null
+//   - (total) = ...: parentheses around the target are ignored
+
+fn main() {
+    let mut total = add_ten(1);   // total #0
+    if total > 5 {
+        let total = false;        // new variable #1 (bool), only inside this block
+        print(total);             // -> #1
+    }
+    (total) = total * 2;          // both names -> #0 again
+    show(total);
+}
+
+fn add_ten(x: i32) -> i32 {      // parameter x #0
+    let x = x + 10;               // new x #1; the x on the right is still #0
+    let small = x < 20;           // #2, inferred bool
+    if small {
+        return x;                 // -> #1
+    }
+    return 0;
+}
+
+fn show(v: i32) {
+    print(v);
+}
