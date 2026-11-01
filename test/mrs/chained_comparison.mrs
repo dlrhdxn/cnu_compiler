@@ -1,0 +1,6 @@
+// expect: CHAINED_COMPARISON@10
+// The error should point to the left comparison operator.
+
+fn main() {
+    let value = 1 < 2 < 3;
+}

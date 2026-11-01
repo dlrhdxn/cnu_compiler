@@ -1,0 +1,12 @@
+// expect: ACCEPT
+// Both branches of an if can contain ordinary statement blocks.
+
+fn main() {
+    if true {
+        let result = 1;
+        print(result);
+    } else {
+        let result = 2;
+        print(result);
+    }
+}

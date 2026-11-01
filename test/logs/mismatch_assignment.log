@@ -1,0 +1,60 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        stmt
+          letStmt
+            LET('let')
+            MUT('mut')
+            ID('value')
+            COLON(':')
+            type
+              I32('i32')
+            ASSIGN('=')
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              INT('0')
+            SEMI(';')
+        stmt
+          exprStmt
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              ID('value')
+                ASSIGN('=')
+                assignExpr
+                  logicalOrExpr
+                    logicalAndExpr
+                      equalityExpr
+                        additiveExpr
+                          multiplicativeExpr
+                            unaryExpr
+                              primaryExpr
+                                TRUE('true')
+            SEMI(';')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+functions: main()
+fn main
+  declare mut value #0 : i32 (let)
+  use value (token 14) -> #0
+ERROR at 15: TYPE_MISMATCH

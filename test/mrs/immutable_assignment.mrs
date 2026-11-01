@@ -1,0 +1,6 @@
+// expect: IMMUTABLE_ASSIGN@11
+
+fn main() {
+    let value = 1;
+    value = 2;
+}

@@ -1,0 +1,13 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('helper')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+ERROR at 1: NO_MAIN

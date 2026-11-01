@@ -1,0 +1,66 @@
+{
+  "functions": [
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "id": 0,
+            "init": {
+              "node": "IntLiteral",
+              "type": "i32",
+              "value": 0
+            },
+            "mutable": true,
+            "name": "count",
+            "node": "VarDecl",
+            "type": "i32"
+          },
+          {
+            "expr": {
+              "node": "AssignExpr",
+              "target": {
+                "decl": 0,
+                "name": "count",
+                "node": "Identifier",
+                "type": "i32"
+              },
+              "type": "i32",
+              "value": {
+                "left": {
+                  "decl": 0,
+                  "name": "count",
+                  "node": "Identifier",
+                  "type": "i32"
+                },
+                "node": "BinaryExpr",
+                "op": "+",
+                "right": {
+                  "node": "IntLiteral",
+                  "type": "i32",
+                  "value": 1
+                },
+                "type": "i32"
+              }
+            },
+            "node": "ExprStmt"
+          },
+          {
+            "node": "PrintStmt",
+            "value": {
+              "decl": 0,
+              "name": "count",
+              "node": "Identifier",
+              "type": "i32"
+            }
+          }
+        ]
+      },
+      "name": "main",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    }
+  ],
+  "node": "Program"
+}

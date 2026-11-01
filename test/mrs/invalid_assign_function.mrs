@@ -1,0 +1,8 @@
+// expect: INVALID_ASSIGN@12
+// The target is a function name, not a variable.
+
+fn target() {}
+
+fn main() {
+    target() = 1;
+}

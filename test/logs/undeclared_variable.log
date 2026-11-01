@@ -1,0 +1,31 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        stmt
+          printStmt
+            PRINT('print')
+            LPAREN('(')
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              ID('missing')
+            RPAREN(')')
+            SEMI(';')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+functions: main()
+fn main
+ERROR at 8: UNDECLARED_VAR missing

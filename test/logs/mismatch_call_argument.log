@@ -1,0 +1,58 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('takes_i32')
+      LPAREN('(')
+      params
+        param
+          ID('value')
+          COLON(':')
+          type
+            I32('i32')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        RBRACE('}')
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        stmt
+          exprStmt
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              ID('takes_i32')
+                              LPAREN('(')
+                              args
+                                expr
+                                  assignExpr
+                                    logicalOrExpr
+                                      logicalAndExpr
+                                        equalityExpr
+                                          additiveExpr
+                                            multiplicativeExpr
+                                              unaryExpr
+                                                primaryExpr
+                                                  TRUE('true')
+                              RPAREN(')')
+            SEMI(';')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+functions: takes_i32(i32), main()
+fn takes_i32
+  declare value #0 : i32 (param)
+fn main
+ERROR at 15: TYPE_MISMATCH

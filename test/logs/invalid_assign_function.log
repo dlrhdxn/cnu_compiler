@@ -1,0 +1,50 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('target')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        RBRACE('}')
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        stmt
+          exprStmt
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              ID('target')
+                              LPAREN('(')
+                              RPAREN(')')
+                ASSIGN('=')
+                assignExpr
+                  logicalOrExpr
+                    logicalAndExpr
+                      equalityExpr
+                        additiveExpr
+                          multiplicativeExpr
+                            unaryExpr
+                              primaryExpr
+                                INT('1')
+            SEMI(';')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+functions: target(), main()
+fn target
+fn main
+ERROR at 12: INVALID_ASSIGN

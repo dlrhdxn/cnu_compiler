@@ -1,0 +1,4 @@
+program
+  EOF('')
+ACCEPT
+ERROR at 1: NO_MAIN

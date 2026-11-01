@@ -1,0 +1,12 @@
+// expect: MISSING_RETURN@2
+// A while body returning does not guarantee that the loop executes.
+
+fn first_when_true(flag: bool) -> i32 {
+    while flag {
+        return 1;
+    }
+}
+
+fn main() {
+    print(first_when_true(true));
+}

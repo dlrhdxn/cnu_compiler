@@ -24,12 +24,10 @@ struct ParseError{
     friend ostream& operator<<(ostream& os,const ParseError& e){os << "ERROR at " << e.line << ": " << e.t << '\n'; return os;}
 };
 struct SemanticError{
-    int line;
+    int tokenIndex;
     string code;
     friend ostream& operator<<(ostream& os,const SemanticError& e){
-        if(e.line > 0) os << "ERROR at " << e.line << ": ";
-        else os << "ERROR: ";
-        os << e.code << '\n';
+        os << "ERROR at " << e.tokenIndex << ": " << e.code;
         return os;
     }
 };
@@ -65,7 +63,14 @@ struct CST{
         return n;
     }
 };
+string typeFromJson(const json& Jtype) {
+    if (Jtype.is_null()) return "";
+    return Jtype.get<string>();
+}
 
+json typeToJson(const string& Stype) {
+    return Stype == "" ? json(nullptr) : json(Stype);
+}
 
 // Token Reader
 class Reader{
@@ -129,7 +134,7 @@ class RDP{
     }
 
 public:
-    RDP(const string& path) : r(path),cst(new CST){cst->depth = -1;};
+    RDP(const string& path) : r(path),cst(new CST){cst->depth = -1; cst->parent=nullptr;};
     ~RDP(){delete cst;}
 
 
@@ -152,13 +157,13 @@ public:
         return ast;
     }
 
-    string term(string name){
+    int term(string name){
         cur = r.peek();
         
         if(cur.type == name) {
             record(cur);
             r.advance();
-            return cur.value;
+            return r.getnpos()-1;
         }
         else throw ParseError(cur, r.getnpos());
     }
@@ -219,7 +224,8 @@ public:
             record("fnDecl"); 
 
             term("FN");
-            node["name"] = term("ID");
+            node["name"] = r.peek().value;
+            node["_tokenIndex"] = term("ID");
             term("LPAREN");
             if(r.peek().type == "ID") node["params"] = params();
             term("RPAREN");
@@ -247,6 +253,7 @@ public:
         else throw ParseError(cur, r.getnpos());
     }
 
+    //param must have type
     json param(){
         cur = r.peek();
 
@@ -258,7 +265,8 @@ public:
         if(cur.type == "ID"){
             record("param");
 
-            node["name"] = term("ID");
+            node["name"] = r.peek().value;
+            node["_tokenIndex"] = term("ID");
             term("COLON");
             node["type"] = type();
 
@@ -268,25 +276,24 @@ public:
         else throw ParseError(cur, r.getnpos());
     }
 
-    json type(){
+    string type(){
         cur = r.peek();
 
-        json d;
         if(cur.type == "I32"){
             record("type");
 
-            d = term("I32");
+            term("I32");
 
             rewind();
-            return d;
+            return "i32";
         }
         else if(cur.type == "BOOL"){
             record("type");
 
-            d = term("BOOL");  
+            term("BOOL");  
 
             rewind();
-            return d;
+            return "bool";
         }
         else throw ParseError(cur, r.getnpos());
     }
@@ -398,10 +405,11 @@ public:
         };
         if(cur.type == "LET"){
             record("letStmt");
-
-            term("LET");
+            
+            node["_tokenIndex"] = term("LET");
             if(r.peek().type == "MUT") {term("MUT"); node["mutable"] = true;}
-            node["name"] = term("ID");
+            node["name"] = r.peek().value;
+            node["_nameTokenIndex"] = term("ID");
             if(r.peek().type == "COLON"){term("COLON"); node["type"] = type();}
             term("ASSIGN");
             node["init"] = expr();
@@ -424,7 +432,7 @@ public:
                 {"then", nullptr},
                 {"else", nullptr}
             };
-            term("IF");
+            node["_tokenIndex"] = term("IF");
             node["cond"] = expr();
             node["then"] = block();
             if(r.peek().type == "ELSE"){
@@ -451,7 +459,8 @@ public:
                 {"cond", nullptr},
                 {"body", nullptr}
             };
-            term("WHILE");
+            node["_tokenIndex"] = term("WHILE");
+
             node["cond"] = expr();
             node["body"] = block();
 
@@ -470,7 +479,8 @@ public:
                 {"node", "ReturnStmt"},
                 {"value", nullptr}
             };
-            term("RETURN");
+            node["_tokenIndex"] = term("RETURN");
+
             cur = r.peek();
             if(cur.type == "MINUS" || 
                     cur.type == "NOT" ||
@@ -497,7 +507,8 @@ public:
                 {"node", "PrintStmt"},
                 {"value", nullptr}
             };
-            term("PRINT");
+            node["_tokenIndex"] = term("PRINT");
+
             term("LPAREN");
             node["value"] = expr();
             term("RPAREN");
@@ -572,9 +583,9 @@ public:
 
             json target = logicalOrExpr();
             if(r.peek().type == "ASSIGN") {
-                term("ASSIGN");
                 json node = {
                     {"node", "AssignExpr"},
+                    {"_tokenIndex", term("ASSIGN")},
                     {"target", target},
                     {"value", assignExpr()}
                 };
@@ -589,7 +600,7 @@ public:
     }
 
     // 아래부터 동일한 우선순위라면, 순서 상관없어서 한번에 들어감.
-
+    // 관례상 좌측 유도로 정함
     json logicalOrExpr(){
         cur = r.peek();
 
@@ -605,13 +616,12 @@ public:
 
             json node = logicalAndExpr();
             while(r.peek().type == "OR") {
-                string op = term("OR");
-                json right = logicalAndExpr();
                 node = {
                     {"node", "BinaryExpr"},
-                    {"op", op},
+                    {"op", "||"},
+                    {"_tokenIndex", term("OR")},
                     {"left", node},
-                    {"right", right}
+                    {"right", logicalAndExpr()}
                 };
             }
 
@@ -636,13 +646,12 @@ public:
 
             json node = equalityExpr();
             while(r.peek().type == "AND") {
-                string op = term("AND");
-                json right = equalityExpr();
                 node = {
                     {"node", "BinaryExpr"},
-                    {"op", op},
+                    {"op", "&&"},
+                    {"_tokenIndex", term("AND")},
                     {"left", node},
-                    {"right", right}
+                    {"right", equalityExpr()}
                 };
             }
 
@@ -673,13 +682,12 @@ public:
                 cur.type == "GT" ||
                 cur.type == "GE")
             {
-                string op = term(cur.type);
-                json right = additiveExpr();
                 node = {
                     {"node", "BinaryExpr"},
-                    {"op", op},
+                    {"op", cur.value},
+                    {"_tokenIndex", term(cur.type)},
                     {"left", node},
-                    {"right", right}
+                    {"right", additiveExpr()}
                 };
                 cur = r.peek();
             }
@@ -706,13 +714,12 @@ public:
             cur = r.peek();
             while(cur.type == "PLUS" || cur.type == "MINUS")
             {
-                string op = term(cur.type);
-                json right = multiplicativeExpr();
                 node = {
                     {"node", "BinaryExpr"},
-                    {"op", op},
+                    {"op", cur.value},
+                    {"_tokenIndex", term(cur.type)},
                     {"left", node},
-                    {"right", right}
+                    {"right", multiplicativeExpr()}
                 };
                 cur = r.peek();
             }
@@ -739,13 +746,12 @@ public:
             cur = r.peek();
             while(cur.type == "STAR" || cur.type == "SLASH")
             {
-                string op = term(cur.type);
-                json right = unaryExpr();
                 node = {
                     {"node", "BinaryExpr"},
-                    {"op", op},
+                    {"op", cur.value},
+                    {"_tokenIndex", term(cur.type)},
                     {"left", node},
-                    {"right", right}
+                    {"right", unaryExpr()}
                 };
                 cur = r.peek();
             }
@@ -764,7 +770,8 @@ public:
 
             json node = {
                 {"node", "UnaryExpr"},
-                {"op", term("MINUS")},
+                {"op", "-"},
+                {"_tokenIndex", term("MINUS")},
                 {"operand", unaryExpr()}
             };
 
@@ -775,7 +782,8 @@ public:
 
             json node = {
                 {"node", "UnaryExpr"},
-                {"op", term("NOT")},
+                {"op", "!"},
+                {"_tokenIndex", term("NOT")},
                 {"operand", unaryExpr()}
             };
 
@@ -805,11 +813,13 @@ public:
         if(cur.type == "ID"){
             record("primaryExpr");
 
-            string name = term("ID");
+            string name = cur.value;
+            int tokenIndex = term("ID");
             if(r.peek().type == "LPAREN"){
                 json node = {
                     {"node", "CallExpr"},
                     {"name", name},
+                    {"_tokenIndex", tokenIndex},
                     {"args", json::array()}
                 };
                 term("LPAREN");
@@ -832,7 +842,8 @@ public:
 
             json node = {
                 {"node", "Identifier"},
-                {"name", name}
+                {"name", name},
+                {"_tokenIndex", tokenIndex}
             };
             rewind();
             return node;
@@ -841,7 +852,8 @@ public:
 
             json node = {
                 {"node", "IntLiteral"},
-                {"value", atoi(term("INT").c_str())}
+                {"value", atoi(cur.value.c_str())},
+                {"_tokenIndex", term("INT")}
             };
 
             rewind();
@@ -912,13 +924,9 @@ public:
 
 };
 
-[[noreturn]] void fail(const string& code){
-    throw SemanticError{0, code};
-}
 
 class SymbolTable{
 public:
-    int nextID;
     struct Variable{
         string type;
         bool isMutable;
@@ -940,26 +948,27 @@ private:
 public:
     map<string, Function> functions;
 
+    SymbolTable(){scopes.push_back(Scope{{},0});}
     void pushScope(){
-        scopes.push_back(Scope{{},0});
+        scopes.push_back(Scope{{},scopes.back().idMark});
     }
-
     void popScope(){
         if(scopes.empty()) throw logic_error("cannot pop an empty symbol scope");
-        nextID = scopes.back().idMark;
         scopes.pop_back();
     }
 
     //Variable, Argument
-    void insertVar(const string& name, const string& type, bool isMutable){
-        if(!scopes.back().variables.emplace(name, Variable{type, isMutable, nextID++}).second) 
-            fail("DUPLICATE " + name);
+    pair<int,bool> insertVar(const string& name, const string& type, bool isMutable){
+        int &id = scopes.back().idMark;
+        bool res = scopes.back().variables.emplace(name, Variable{type, isMutable, id}).second;
+        if(res) return {id++, res};
+        else return {id,res};
     }
-
     //Global Function 
-    void insertFunc(const string& name, const vector<string>& paramtypes,const string& rettype){
-        if(!functions.emplace(name,Function{paramtypes, rettype}).second) 
-            fail("DUPLICATE " + name);
+
+    bool insertFunc(const string& name, const vector<string>& paramtypes,const string& rettype){
+        bool res = functions.emplace(name,Function{paramtypes, rettype}).second;
+        return res;
     }
 
     const Variable* findVariable(const string& name) const{
@@ -974,74 +983,140 @@ public:
 class semanticAnalyzer{
     json& ast;
     SymbolTable st;
-    string log;
-    int i = 0;
+    stringstream log; // only record declare & use
+    int d = 0;
 
-    //record_block / use & declare
-    void record(){
-        i++;
-    }
-    void rewind(){
-        i--;
+
+    [[noreturn]] void fail(int tokenIndex, const string& code) const{
+        throw SemanticError{tokenIndex, code};
     }
 
-    //insertVar
-    void declareVar(json& j){
-        const string& t = j["type"].is_null() ? "" : j["type"];
-        bool isMut = j["mutable"].is_null() ? false : j["mutable"].get<bool>();
-        j["id"] = st.nextID;
-        st.insertVar(j["name"],t,isMut);
+    [[noreturn]] void fail(const json& node, const string& code) const{
+        fail(node.value("_tokenIndex", -1), code);
     }
 
-    const SymbolTable::Variable& lookupVariable(const string& name) const{
+    void recdepth(){
+        for(int i = 0; i < d; i++) log << "  ";
+    }
+    //insertVar and record
+    int registerVariable(
+        const string& name,
+        const string& type,
+        bool isMutable,
+        int nameTokenIndex,
+        const string& kind
+    ){
+        auto res = st.insertVar(name,type,isMutable);
+        if(!res.second) fail(nameTokenIndex,"DUPLICATE var " + name);
+        
+        recdepth();
+        log << "declare ";
+        if(isMutable && kind != "(param)") log << "mut ";
+        log << name << " #" << res.first << " : " << type << ' ' << kind << '\n';
+        return res.first;
+    }
+
+    void declareLocal(json& decl){
+        const string& t = typeFromJson(decl["type"]);
+        decl["id"] = registerVariable(decl["name"],t,decl["mutable"],decl["_nameTokenIndex"],"(let)");
+    }
+    void declareParameter(json& param){
+        param["id"] = registerVariable(param["name"],param["type"],true,param["_tokenIndex"],"(param)");
+    }
+
+    //Node : FnDecl
+    string declareFunction(json& function){
+        string name = function["name"];
+        vector<string> paramtypes;
+        string rettype = typeFromJson(function["returnType"]);
+        string l = name;
+        l += '(';
+        for(const json& param : function["params"]){
+            paramtypes.push_back(param["type"]);
+            
+            for(auto pat : paramtypes) l += pat + ", ";
+            if(l.back() == ' ') {
+                l.pop_back();
+                l.pop_back();
+            }
+        }
+        l += ')';
+        if(rettype != "") l += " -> " + rettype;
+        bool res = st.insertFunc(name,paramtypes,rettype);
+        if(!res) fail(function,"DUPLICATE fn " + name);
+        return l;
+    }
+
+
+    const SymbolTable::Variable& lookupVariable(const string& name, int tokenIndex) const{
         const SymbolTable::Variable* variable = st.findVariable(name);
-        if(variable == nullptr) fail("UNDECLARED_VAR " + name);
+        if(variable == nullptr) fail(tokenIndex, "UNDECLARED_VAR " + name);
         return *variable; 
     }
+    // const SymbolTable::Function& lookupFunction(const string& name, int tokenIndex) const{
+    //     auto iter = st.functions.find(name);
+    //     if(iter == st.functions.end()) fail(tokenIndex, "UNDECLARED_FUNC " + name);
+    //     return (*iter).second; 
+    // }
 
     void registerFunctions(){
-        log = "functions: ";
+        string l = "functions: ";
+        bool noMain = true;
         for(json& function : ast["functions"]){
+            const string& name = function["name"];
             vector<string> paramtypes;
-            for(const json& param : function["params"])
-                paramtypes.push_back(param["type"]);
-            
-            string rettype = function["returnType"].is_null() ? "" : function["returnType"];
-            st.insertFunc(function["name"],paramtypes,rettype);
-
-            log += function["name"] + "(";
-            for(auto pat : paramtypes) log += pat + ","; log.pop_back(); 
-            log += ") -> " + rettype;
+            if(name == "main") noMain = false;
+            l += declareFunction(function) + ", ";
         }
-        log += '\n';
+        if(noMain) fail(1, "NO_MAIN");
+        
+        if(l.back() == ' ') {
+            l.pop_back();
+            l.pop_back();
+        }
+        log  << l << '\n';
     }
 
     void analyzeFunction(json& function){
-        string& expectedReturnType = st.functions[function["name"]].returnType;
-        log += "fn " + function["name"] + '\n';
+        const string& name =  function["name"];
+        log << "fn " << name << '\n';
+        string& expectedReturnType = st.functions[name].returnType;
         st.pushScope();
+        ++d;
         for(json& param : function["params"]){
-            
-            declareVar(param);
+            declareParameter(param);
         }
-
+        st.pushScope();
         string returnType = analyzeBlock(function["body"],false);
+        st.popScope();
+        st.popScope();
+
         if(expectedReturnType == ""){
             expectedReturnType = returnType;
         }
-        else if(returnType == "") fail("MISSING_RETURN");
-        else if(returnType != expectedReturnType) fail("TYPE_MISMATCH");        
-        st.popScope();
+        else if(returnType == "") fail(function, "MISSING_RETURN");
+        else if(returnType != expectedReturnType) fail(function, "TYPE_MISMATCH");        
+        --d;
+
     }
 
     string analyzeBlock(json& block, bool createScope){
-        if(createScope) st.pushScope();
-        string statementReturns;
-        for(json& statement : block["stmts"]){
-            statementReturns = analyzeStatement(statement);
-            if(statementReturns != "") break;
+        
+        if(createScope) {
+            st.pushScope();
+            ++d;
         }
-        if(createScope) st.popScope();
+
+        string statementReturns;
+        string t;
+        for(json& statement : block["stmts"]){
+            t = analyzeStatement(statement);
+            if(statementReturns == "") statementReturns = t;
+        }
+        if(createScope) {
+            st.popScope();
+            --d;
+        }
         return statementReturns;
     }
 
@@ -1049,23 +1124,35 @@ class semanticAnalyzer{
         string kind = statement["node"];
         if(kind == "VarDecl"){
             const string& initType = analyzeExpression(statement["init"]);
-            if (statement["type"].is_null()) statement["type"] = initType;
-            else if(statement["type"] != initType) fail("TYPE_MISMATCH");
-            declareVar(statement);
+            if (initType == "") fail(statement, "TYPE_MISMATCH");
+            else if (statement["type"].is_null()) statement["type"] = initType;
+            else if(statement["type"] != initType) fail(statement, "TYPE_MISMATCH");
+            declareLocal(statement);
             return "";
         }
         if(kind == "IfStmt"){
-            // IF ELSE 모두 존재하고 타입이 같다고 가정
-            if(analyzeExpression(statement["cond"]) != "bool") fail("TYPE_MISMATCCH");
+            if(analyzeExpression(statement["cond"]) != "bool") fail(statement, "TYPE_MISMATCH condition");
             string thenReturns = analyzeBlock(statement["then"], true);
-            if(statement["else"].is_null()) return ""; // thentype return or null -> 모름
-            string elseReturns = analyzeStatement(statement["else"]);
-            return thenReturns != "" ? thenReturns : elseReturns;
+            if(statement["else"].is_null()) return ""; // it may no return
+
+            json& el = statement["else"];
+            string elseReturns;
+            string kind = el["node"];
+            if(kind == "Block"){
+                elseReturns = analyzeBlock(el, true);
+            }
+            else if(kind == "IfStmt"){
+                elseReturns = analyzeStatement(el);
+            }
+            if(thenReturns == "" || elseReturns == "") return ""; //it may no return
+            if(thenReturns != elseReturns) fail(statement, "TYPE_MISMATCH if/else then expect:" + thenReturns + " else expect: " + elseReturns);
+            return thenReturns;
         }
+            
         if(kind == "WhileStmt"){
-            if(analyzeExpression(statement["cond"]) != "bool") fail("TYPE_MISMATCCH");
+            if(analyzeExpression(statement["cond"]) != "bool") fail(statement, "TYPE_MISMATCH");
             string bodyReturns = analyzeBlock(statement["body"], true);
-            return bodyReturns;
+            return ""; // it may no return
         }
         if(kind == "ReturnStmt"){
             json& value = statement["value"];
@@ -1080,7 +1167,7 @@ class semanticAnalyzer{
             analyzeExpression(statement.at("expr"));
             return "";
         }
-        fail("ERROR");
+        fail(statement, "[UNREACHABLE] Not stmt kind of "+kind);
     }
 
     string analyzeExpression(json& expression){
@@ -1088,42 +1175,46 @@ class semanticAnalyzer{
         if(kind == "IntLiteral") {return expression["type"] = "i32";}
         if(kind == "BoolLiteral") {return expression["type"] = "bool";}
         if(kind == "Identifier"){
-            auto var = lookupVariable(expression["name"]);
+            const string& name = expression["name"];
+            auto var = lookupVariable(name, expression["_tokenIndex"]);
             expression["decl"] = var.id;
-            return expression["type"] = var.type;
+            recdepth();
+            log << "use " << name << " (token " << expression["_tokenIndex"] << ") -> #" << var.id << '\n';
+            return expression["type"] = var.type; // Var 은 선언=초기화 -> type 이 항상 존재
         }
-        if(kind == "ParenExpr") {return expression["type"] = analyzeExpression(expression.at("expr"));}
+        if(kind == "ParenExpr") {return expression["type"] = analyzeExpression(expression["expr"]);}
         if(kind == "CallExpr"){
             const string name = expression["name"];
             auto function = st.functions.find(name);
             if(function == st.functions.end()){
-                if(st.findVariable(name) == nullptr) fail("UNDECLARED_FUNC");
-                else fail("NOT_A_FUNCTION");
+                if(st.findVariable(name) == nullptr) fail(expression, "UNDECLARED_FUNC");
+                else fail(expression, "NOT_A_FUNCTION");
             } 
 
             json& arguments = expression["args"];
             int cnt = arguments.size();
             int expectedcnt = function->second.parameterTypes.size();
 
-            if(cnt > expectedcnt) fail("too many args");
-            else if(cnt < expectedcnt) fail("few args");
+            if(cnt > expectedcnt) fail(expression, "too many args");
+            else if(cnt < expectedcnt) fail(expression, "few args");
             
             for (size_t i = 0; i < cnt; ++i){
                 if(function->second.parameterTypes[i] != analyzeExpression(arguments[i])) 
-                    fail("TYPE_MISMATCH");
+                    fail(expression, "TYPE_MISMATCH");
             }
-            return expression["type"] = function->second.returnType;
+            const string& rettyp = function->second.returnType;
+            expression["type"] = typeToJson(rettyp); // may no return
+            return rettyp;
         }
         if(kind == "UnaryExpr"){
             const string op = expression["op"];
             string operandType = analyzeExpression(expression["operand"]);
             if(op == "-"){
-                if(operandType != "i32") fail("TYPE_MISMATCH");
-                
+                if(operandType != "i32") fail(expression, "TYPE_MISMATCH");
                 return expression["type"] = "i32";
             }
             if(op == "!"){
-                if(operandType != "bool") fail("TYPE_MISMATCH");
+                if(operandType != "bool") fail(expression, "TYPE_MISMATCH");
                 return expression["type"] = "bool";
             }
         }
@@ -1132,56 +1223,51 @@ class semanticAnalyzer{
             string leftType = analyzeExpression(expression["left"]);
             string rightType = analyzeExpression(expression["right"]);
             
-            //for check chained comparison
-            const json& leftExpr = expression["left"];
-            
-            auto iscompare = [&](){
-                return leftExpr["node"] == "BinaryExpr" && 
-                    ((leftExpr["op"] == "&&") || (leftExpr["op"] == "||") || 
-                    (leftExpr["op"] == "==") || (leftExpr["op"] == "!=") ||
-                    (leftExpr["op"] == "<") || (leftExpr["op"] == "<=") ||
-                    (leftExpr["op"] == ">") || (leftExpr["op"] == ">="));
+            //for checking chained comparison
+            auto iscompare = [&](const json& expr){
+                return expr["node"] == "BinaryExpr" && 
+                    ((expr["op"] == "==") || (expr["op"] == "!=") ||
+                    (expr["op"] == "<") || (expr["op"] == "<=") ||
+                    (expr["op"] == ">") || (expr["op"] == ">="));
             };
 
+            if(iscompare(expression) && iscompare(expression["left"])) fail(expression["left"],"CHAINED_COMPARISON");
+
             if(leftType == "" || rightType == ""){
-                fail("TYPE_MISMATCH");
+                fail(expression, "TYPE_MISMATCH");
             }
-            if(op == "+" || op == "-" || op == "*" || op == "/"){
-                if(leftType != "i32") fail("TYPE_MISMATCH");
-                if(rightType != "i32") fail("TYPE_MISMATCH");
+            if(op == "+" || op ==  "-" || op == "*" || op == "/"){
+                if(leftType != "i32" || rightType != "i32") fail(expression, "TYPE_MISMATCH");
                 return expression["type"] = "i32";
             }
             if(op == "&&" || op == "||"){
-                if(leftType != "bool") fail("TYPE_MISMATCH");
-                if(rightType != "bool") fail("TYPE_MISMATCH");
-                
-                if(iscompare()) fail("CHAINED_COMPARISON");
+                if(leftType != "bool" || rightType != "bool") fail(expression, "TYPE_MISMATCH");                
                 return expression["type"] = "bool";
             }
             if(op == "==" || op == "!="){
-                if(leftType != rightType) fail("TYPE_MISMATCH");
-                if(iscompare()) fail("CHAINED_COMPARISON");
+                if(leftType != rightType) fail(expression, "TYPE_MISMATCH");
                 return expression["type"] = "bool";
             }
             if(op == "<" || op == "<=" || op == ">" || op == ">="){
-                if(leftType != "i32") fail("TYPE_MISMATCH");
-                if(rightType != "i32") fail("TYPE_MISMATCH");
-                if(iscompare()) fail("CHAINED_COMPARISON");
+                if(leftType != "i32" || rightType != "i32") fail(expression, "TYPE_MISMATCH");
                 return expression["type"] = "bool";
             }
         }
         if(kind == "AssignExpr"){
-            const json& target = expression["target"];
-            if(target["node"] != "Identifier") fail("INVALID_ASSIGN");
+            analyzeExpression(expression["target"]);
+            json* tar = &expression["target"];
+            while(tar->at("node") == "ParenExpr") tar = &tar->at("expr");
+            if(tar->at("node") != "Identifier") fail(*tar, "INVALID_ASSIGN");
 
-            const SymbolTable::Variable& variable = lookupVariable(target["name"]);
-            if(!variable.isMutable) fail("IMMUTABLE_ASSIGN");
+            const json& target = *tar;
+            const SymbolTable::Variable& variable = lookupVariable(target["name"], target["_tokenIndex"]);
+            if(!variable.isMutable) fail(target, "IMMUTABLE_ASSIGN " + target["name"].get<string>());
 
             string valueType = analyzeExpression(expression.at("value"));
-            fail("TYPE_MISMATCH");
+            if(valueType == "" || valueType != variable.type) fail(expression, "TYPE_MISMATCH");
             return expression["type"] = variable.type;
         }
-        fail("ERROR");
+        fail(expression, "[UNREACHABLE] Not expr kind of " + kind);
     }
 
 public:
@@ -1197,11 +1283,26 @@ public:
             analyzeFunction(function);
         } 
     }
-
-    string log(){
-        st.functions    
+    string getlog(){
+        return log.str();
     }
+
 };
+
+
+void removeTokenInfo(json& value) {
+    if (value.is_object()) {
+        value.erase("_tokenIndex");
+        value.erase("_nameTokenIndex");
+        for (auto& [key, child] : value.items()) {
+            removeTokenInfo(child);
+        }
+    } else if (value.is_array()) {
+        for (auto& child : value) {
+            removeTokenInfo(child);
+        }
+    }
+}
 
 int main(int argc, char* argv[]){
 
@@ -1226,7 +1327,7 @@ int main(int argc, char* argv[]){
     if(argc != 4){cout << argv[0] << " tokenfile logfile jsonfile"; return -1;}
 
     RDP rdp(argv[1]);
-    
+    semanticAnalyzer* analyzer;
     ofstream logf;
     ofstream astf;
     logf.open(argv[2]);
@@ -1238,20 +1339,29 @@ int main(int argc, char* argv[]){
         logf << "ACCEPT\n";
 
         json& ast = rdp.getast();
-        semanticAnalyzer analyzer(ast);
-        analyzer.process();
+        analyzer = new semanticAnalyzer(ast);
+        analyzer->process();
 
-        logf << 
+        logf << analyzer->getlog();
+        logf << "OK\n";
 
-
-        astf << rdp.getast().dump(2) << '\n';
+        removeTokenInfo(ast);
+        astf << ast.dump(2) << '\n';
 
     }catch(ParseError& e){
         logf << rdp.getcst();    
-        logf << e;
+        logf << e << '\n';
+        cout << "[Parse] " << e << '\n';
     }catch(SemanticError& e){
-        logf << e;
-    }
+        logf << analyzer->getlog();
+        logf << e << '\n';
+        cout << "[Semantic Analyze] " << e << '\n';
 
+    }catch(exception& e){
+        logf << analyzer->getlog();
+        astf << rdp.getast().dump(2);
+        logf << e.what();
+        throw;
+    }
     return 0;
 }

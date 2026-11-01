@@ -1,0 +1,31 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('repeated')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        RBRACE('}')
+  decl
+    fnDecl
+      FN('fn')
+      ID('repeated')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        RBRACE('}')
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+ERROR at 8: DUPLICATE fn repeated

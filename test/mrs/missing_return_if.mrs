@@ -1,0 +1,12 @@
+// expect: MISSING_RETURN@2
+// An if without an else does not return on every control-flow path.
+
+fn choose(flag: bool) -> i32 {
+    if flag {
+        return 1;
+    }
+}
+
+fn main() {
+    print(choose(true));
+}

@@ -1,0 +1,5 @@
+// expect: TYPE_MISMATCH@6
+
+fn main() {
+    if 1 {}
+}

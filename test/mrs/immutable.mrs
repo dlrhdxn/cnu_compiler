@@ -1,0 +1,15 @@
+// expect: IMMUTABLE_ASSIGN@22
+// `count` is declared without `mut`, so it cannot be assigned again.
+// The error is reported at the variable name on the left of `=`.
+// N is the token number = the line number in the token file:
+// line 22 of example_02_immutable_assign_tokens.txt is ID('count').
+
+fn main() {
+    let count = 0;
+    let mut i = 0;
+    while i < 3 {
+        count = count + i;        // error: count is not mut
+        i = i + 1;
+    }
+    print(count);
+}

@@ -1,0 +1,38 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        stmt
+          letStmt
+            LET('let')
+            ID('value')
+            ASSIGN('=')
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              TRUE('true')
+                    AND('&&')
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              INT('1')
+            SEMI(';')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+functions: main()
+fn main
+ERROR at 10: TYPE_MISMATCH

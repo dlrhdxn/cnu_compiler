@@ -1,0 +1,13 @@
+// expect: ACCEPT
+// Expected declaration IDs: outer #0, inner #1, after #1.
+// Leaving a nested scope must preserve IDs that remain active outside it.
+
+fn main() {
+    let outer = 1;
+    if true {
+        let inner = 2;
+        print(inner);
+    }
+    let after = 3;
+    print(outer + after);
+}

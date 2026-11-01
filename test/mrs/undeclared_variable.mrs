@@ -1,0 +1,5 @@
+// expect: UNDECLARED_VAR@8
+
+fn main() {
+    print(missing);
+}

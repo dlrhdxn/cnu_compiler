@@ -1,0 +1,16 @@
+// expect: TYPE_MISMATCH@25
+// A call to a function with no return type has no value.
+// It can be used as a statement, but not where a value is needed.
+// (In Rust this call has the value () and compiles. In this lab it is an error.)
+// The error is reported at the node that receives the value: here, `let`
+// (token 25 = LET('let') of `let r`), not at the call.
+
+fn log_value(v: i32) {
+    print(v);
+}
+
+fn main() {
+    log_value(1);                 // OK: used as a statement
+    let r = log_value(2);         // error: there is no value to store in r
+    print(r);
+}

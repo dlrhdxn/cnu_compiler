@@ -1,0 +1,41 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('returns_i32')
+      LPAREN('(')
+      RPAREN(')')
+      ARROW('->')
+      type
+        I32('i32')
+      block
+        LBRACE('{')
+        stmt
+          returnStmt
+            RETURN('return')
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              TRUE('true')
+            SEMI(';')
+        RBRACE('}')
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+functions: returns_i32() -> i32, main()
+fn returns_i32
+ERROR at 2: TYPE_MISMATCH

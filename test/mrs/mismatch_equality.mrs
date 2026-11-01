@@ -1,0 +1,5 @@
+// expect: TYPE_MISMATCH@10
+
+fn main() {
+    let value = 1 == true;
+}

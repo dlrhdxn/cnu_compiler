@@ -1,0 +1,5 @@
+// expect: TYPE_MISMATCH@6
+
+fn main() {
+    let value: i32 = true;
+}

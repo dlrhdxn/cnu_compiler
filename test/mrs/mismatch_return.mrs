@@ -1,0 +1,7 @@
+// expect: TYPE_MISMATCH@2
+
+fn returns_i32() -> i32 {
+    return true;
+}
+
+fn main() {}

@@ -1,5 +1,0 @@
-// expect error
-fn main(){
-    let x;
-
-}

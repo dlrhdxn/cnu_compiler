@@ -1,0 +1,80 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        stmt
+          letStmt
+            LET('let')
+            MUT('mut')
+            ID('count')
+            ASSIGN('=')
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              INT('0')
+            SEMI(';')
+        stmt
+          exprStmt
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              ID('count')
+                ASSIGN('=')
+                assignExpr
+                  logicalOrExpr
+                    logicalAndExpr
+                      equalityExpr
+                        additiveExpr
+                          multiplicativeExpr
+                            unaryExpr
+                              primaryExpr
+                                ID('count')
+                          PLUS('+')
+                          multiplicativeExpr
+                            unaryExpr
+                              primaryExpr
+                                INT('1')
+            SEMI(';')
+        stmt
+          printStmt
+            PRINT('print')
+            LPAREN('(')
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              ID('count')
+            RPAREN(')')
+            SEMI(';')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+functions: main()
+fn main
+  declare mut count #0 : i32 (let)
+  use count (token 12) -> #0
+  use count (token 14) -> #0
+  use count (token 20) -> #0
+OK

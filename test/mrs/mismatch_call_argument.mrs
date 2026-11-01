@@ -1,0 +1,7 @@
+// expect: TYPE_MISMATCH@15
+
+fn takes_i32(value: i32) {}
+
+fn main() {
+    takes_i32(true);
+}

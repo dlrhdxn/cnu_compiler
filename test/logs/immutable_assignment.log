@@ -1,0 +1,56 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        stmt
+          letStmt
+            LET('let')
+            ID('value')
+            ASSIGN('=')
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              INT('1')
+            SEMI(';')
+        stmt
+          exprStmt
+            expr
+              assignExpr
+                logicalOrExpr
+                  logicalAndExpr
+                    equalityExpr
+                      additiveExpr
+                        multiplicativeExpr
+                          unaryExpr
+                            primaryExpr
+                              ID('value')
+                ASSIGN('=')
+                assignExpr
+                  logicalOrExpr
+                    logicalAndExpr
+                      equalityExpr
+                        additiveExpr
+                          multiplicativeExpr
+                            unaryExpr
+                              primaryExpr
+                                INT('2')
+            SEMI(';')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+functions: main()
+fn main
+  declare value #0 : i32 (let)
+  use value (token 11) -> #0
+ERROR at 11: IMMUTABLE_ASSIGN value

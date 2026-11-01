@@ -1,0 +1,95 @@
+{
+  "functions": [
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "id": 0,
+            "init": {
+              "node": "IntLiteral",
+              "type": "i32",
+              "value": 1
+            },
+            "mutable": false,
+            "name": "outer",
+            "node": "VarDecl",
+            "type": "i32"
+          },
+          {
+            "cond": {
+              "node": "BoolLiteral",
+              "type": "bool",
+              "value": true
+            },
+            "else": null,
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "id": 1,
+                  "init": {
+                    "node": "IntLiteral",
+                    "type": "i32",
+                    "value": 2
+                  },
+                  "mutable": false,
+                  "name": "inner",
+                  "node": "VarDecl",
+                  "type": "i32"
+                },
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "decl": 1,
+                    "name": "inner",
+                    "node": "Identifier",
+                    "type": "i32"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "id": 1,
+            "init": {
+              "node": "IntLiteral",
+              "type": "i32",
+              "value": 3
+            },
+            "mutable": false,
+            "name": "after",
+            "node": "VarDecl",
+            "type": "i32"
+          },
+          {
+            "node": "PrintStmt",
+            "value": {
+              "left": {
+                "decl": 0,
+                "name": "outer",
+                "node": "Identifier",
+                "type": "i32"
+              },
+              "node": "BinaryExpr",
+              "op": "+",
+              "right": {
+                "decl": 1,
+                "name": "after",
+                "node": "Identifier",
+                "type": "i32"
+              },
+              "type": "i32"
+            }
+          }
+        ]
+      },
+      "name": "main",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    }
+  ],
+  "node": "Program"
+}

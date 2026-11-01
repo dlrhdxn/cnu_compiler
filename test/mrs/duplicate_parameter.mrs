@@ -1,0 +1,5 @@
+// expect: DUPLICATE@8
+
+fn repeated(value: i32, value: i32) {}
+
+fn main() {}

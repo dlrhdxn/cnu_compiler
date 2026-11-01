@@ -1,0 +1,7 @@
+FN('fn')
+ID('helper')
+LPAREN('(')
+RPAREN(')')
+LBRACE('{')
+RBRACE('}')
+EOF('')

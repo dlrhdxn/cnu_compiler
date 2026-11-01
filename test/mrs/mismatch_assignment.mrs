@@ -1,0 +1,6 @@
+// expect: TYPE_MISMATCH@15
+
+fn main() {
+    let mut value: i32 = 0;
+    value = true;
+}

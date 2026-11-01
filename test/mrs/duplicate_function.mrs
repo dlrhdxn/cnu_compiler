@@ -1,0 +1,7 @@
+// expect: DUPLICATE@8
+
+fn repeated() {}
+
+fn repeated() {}
+
+fn main() {}

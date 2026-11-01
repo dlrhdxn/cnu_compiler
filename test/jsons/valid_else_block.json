@@ -1,0 +1,76 @@
+{
+  "functions": [
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "cond": {
+              "node": "BoolLiteral",
+              "type": "bool",
+              "value": true
+            },
+            "else": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "id": 0,
+                  "init": {
+                    "node": "IntLiteral",
+                    "type": "i32",
+                    "value": 2
+                  },
+                  "mutable": false,
+                  "name": "result",
+                  "node": "VarDecl",
+                  "type": "i32"
+                },
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "decl": 0,
+                    "name": "result",
+                    "node": "Identifier",
+                    "type": "i32"
+                  }
+                }
+              ]
+            },
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "id": 0,
+                  "init": {
+                    "node": "IntLiteral",
+                    "type": "i32",
+                    "value": 1
+                  },
+                  "mutable": false,
+                  "name": "result",
+                  "node": "VarDecl",
+                  "type": "i32"
+                },
+                {
+                  "node": "PrintStmt",
+                  "value": {
+                    "decl": 0,
+                    "name": "result",
+                    "node": "Identifier",
+                    "type": "i32"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "name": "main",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    }
+  ],
+  "node": "Program"
+}

@@ -1,0 +1,37 @@
+program
+  decl
+    fnDecl
+      FN('fn')
+      ID('repeated')
+      LPAREN('(')
+      params
+        param
+          ID('value')
+          COLON(':')
+          type
+            I32('i32')
+        COMMA(',')
+        param
+          ID('value')
+          COLON(':')
+          type
+            I32('i32')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        RBRACE('}')
+  decl
+    fnDecl
+      FN('fn')
+      ID('main')
+      LPAREN('(')
+      RPAREN(')')
+      block
+        LBRACE('{')
+        RBRACE('}')
+  EOF('')
+ACCEPT
+functions: repeated(i32i32, i32), main()
+fn repeated
+  declare value #0 : i32 (param)
+ERROR at 8: DUPLICATE var value

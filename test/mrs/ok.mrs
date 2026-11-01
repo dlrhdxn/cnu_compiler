@@ -1,0 +1,46 @@
+// expect: ACCEPT
+
+fn main(){
+    let mut a: i32 = 0;
+    let mut b: i32 = 0;
+    let c:i32 = 1;
+    ((a)) = 4;
+
+    show(fibo(a));
+}
+
+fn fibo(n : i32) -> i32{
+    if(n == 1 || n == 0) {return n;}
+    return (fibo(n-1) + fibo(n-2));
+}
+
+fn calc(a : i32, b : i32, op : i32) -> i32{
+    if(op == 0){
+        return (a + b);
+    }
+    else if(op == 1){
+        return (a - b);
+    }
+    else if(op == 2){
+        return (a * b);
+    }
+    else if(op == 3){
+        return (a / b);
+    }
+    else {return (-1);}
+}
+fn sum(a : i32, i : i32) -> i32{
+    let mut sum = 0;
+    while(i == 0) {i = i-1;sum = sum + a;}
+    return sum;
+}
+
+fn ispassed(score:i32) -> bool{
+    if(score > 90 && score < 100) {return true;}
+    else {return false;}
+}
+
+fn show(v: i32) {
+    print(v);
+}
+

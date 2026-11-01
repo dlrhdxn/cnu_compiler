@@ -1,0 +1,5 @@
+// expect: UNDECLARED_FUNC@6
+
+fn main() {
+    missing();
+}

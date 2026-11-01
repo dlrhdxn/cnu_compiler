@@ -1,0 +1,6 @@
+// expect: NOT_A_FUNCTION@11
+
+fn main() {
+    let value = 1;
+    value();
+}

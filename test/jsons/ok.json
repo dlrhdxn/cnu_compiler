@@ -1,0 +1,743 @@
+{
+  "functions": [
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "id": 0,
+            "init": {
+              "node": "IntLiteral",
+              "type": "i32",
+              "value": 0
+            },
+            "mutable": true,
+            "name": "a",
+            "node": "VarDecl",
+            "type": "i32"
+          },
+          {
+            "id": 1,
+            "init": {
+              "node": "IntLiteral",
+              "type": "i32",
+              "value": 0
+            },
+            "mutable": true,
+            "name": "b",
+            "node": "VarDecl",
+            "type": "i32"
+          },
+          {
+            "id": 2,
+            "init": {
+              "node": "IntLiteral",
+              "type": "i32",
+              "value": 1
+            },
+            "mutable": false,
+            "name": "c",
+            "node": "VarDecl",
+            "type": "i32"
+          },
+          {
+            "expr": {
+              "node": "AssignExpr",
+              "target": {
+                "expr": {
+                  "expr": {
+                    "decl": 0,
+                    "name": "a",
+                    "node": "Identifier",
+                    "type": "i32"
+                  },
+                  "node": "ParenExpr",
+                  "type": "i32"
+                },
+                "node": "ParenExpr",
+                "type": "i32"
+              },
+              "type": "i32",
+              "value": {
+                "node": "IntLiteral",
+                "type": "i32",
+                "value": 4
+              }
+            },
+            "node": "ExprStmt"
+          },
+          {
+            "expr": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "decl": 0,
+                      "name": "a",
+                      "node": "Identifier",
+                      "type": "i32"
+                    }
+                  ],
+                  "name": "fibo",
+                  "node": "CallExpr",
+                  "type": "i32"
+                }
+              ],
+              "name": "show",
+              "node": "CallExpr",
+              "type": null
+            },
+            "node": "ExprStmt"
+          }
+        ]
+      },
+      "name": "main",
+      "node": "FnDecl",
+      "params": [],
+      "returnType": null
+    },
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "cond": {
+              "expr": {
+                "left": {
+                  "left": {
+                    "decl": 0,
+                    "name": "n",
+                    "node": "Identifier",
+                    "type": "i32"
+                  },
+                  "node": "BinaryExpr",
+                  "op": "==",
+                  "right": {
+                    "node": "IntLiteral",
+                    "type": "i32",
+                    "value": 1
+                  },
+                  "type": "bool"
+                },
+                "node": "BinaryExpr",
+                "op": "||",
+                "right": {
+                  "left": {
+                    "decl": 0,
+                    "name": "n",
+                    "node": "Identifier",
+                    "type": "i32"
+                  },
+                  "node": "BinaryExpr",
+                  "op": "==",
+                  "right": {
+                    "node": "IntLiteral",
+                    "type": "i32",
+                    "value": 0
+                  },
+                  "type": "bool"
+                },
+                "type": "bool"
+              },
+              "node": "ParenExpr",
+              "type": "bool"
+            },
+            "else": null,
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "ReturnStmt",
+                  "value": {
+                    "decl": 0,
+                    "name": "n",
+                    "node": "Identifier",
+                    "type": "i32"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "node": "ReturnStmt",
+            "value": {
+              "expr": {
+                "left": {
+                  "args": [
+                    {
+                      "left": {
+                        "decl": 0,
+                        "name": "n",
+                        "node": "Identifier",
+                        "type": "i32"
+                      },
+                      "node": "BinaryExpr",
+                      "op": "-",
+                      "right": {
+                        "node": "IntLiteral",
+                        "type": "i32",
+                        "value": 1
+                      },
+                      "type": "i32"
+                    }
+                  ],
+                  "name": "fibo",
+                  "node": "CallExpr",
+                  "type": "i32"
+                },
+                "node": "BinaryExpr",
+                "op": "+",
+                "right": {
+                  "args": [
+                    {
+                      "left": {
+                        "decl": 0,
+                        "name": "n",
+                        "node": "Identifier",
+                        "type": "i32"
+                      },
+                      "node": "BinaryExpr",
+                      "op": "-",
+                      "right": {
+                        "node": "IntLiteral",
+                        "type": "i32",
+                        "value": 2
+                      },
+                      "type": "i32"
+                    }
+                  ],
+                  "name": "fibo",
+                  "node": "CallExpr",
+                  "type": "i32"
+                },
+                "type": "i32"
+              },
+              "node": "ParenExpr",
+              "type": "i32"
+            }
+          }
+        ]
+      },
+      "name": "fibo",
+      "node": "FnDecl",
+      "params": [
+        {
+          "id": 0,
+          "name": "n",
+          "node": "Param",
+          "type": "i32"
+        }
+      ],
+      "returnType": "i32"
+    },
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "cond": {
+              "expr": {
+                "left": {
+                  "decl": 2,
+                  "name": "op",
+                  "node": "Identifier",
+                  "type": "i32"
+                },
+                "node": "BinaryExpr",
+                "op": "==",
+                "right": {
+                  "node": "IntLiteral",
+                  "type": "i32",
+                  "value": 0
+                },
+                "type": "bool"
+              },
+              "node": "ParenExpr",
+              "type": "bool"
+            },
+            "else": {
+              "cond": {
+                "expr": {
+                  "left": {
+                    "decl": 2,
+                    "name": "op",
+                    "node": "Identifier",
+                    "type": "i32"
+                  },
+                  "node": "BinaryExpr",
+                  "op": "==",
+                  "right": {
+                    "node": "IntLiteral",
+                    "type": "i32",
+                    "value": 1
+                  },
+                  "type": "bool"
+                },
+                "node": "ParenExpr",
+                "type": "bool"
+              },
+              "else": {
+                "cond": {
+                  "expr": {
+                    "left": {
+                      "decl": 2,
+                      "name": "op",
+                      "node": "Identifier",
+                      "type": "i32"
+                    },
+                    "node": "BinaryExpr",
+                    "op": "==",
+                    "right": {
+                      "node": "IntLiteral",
+                      "type": "i32",
+                      "value": 2
+                    },
+                    "type": "bool"
+                  },
+                  "node": "ParenExpr",
+                  "type": "bool"
+                },
+                "else": {
+                  "cond": {
+                    "expr": {
+                      "left": {
+                        "decl": 2,
+                        "name": "op",
+                        "node": "Identifier",
+                        "type": "i32"
+                      },
+                      "node": "BinaryExpr",
+                      "op": "==",
+                      "right": {
+                        "node": "IntLiteral",
+                        "type": "i32",
+                        "value": 3
+                      },
+                      "type": "bool"
+                    },
+                    "node": "ParenExpr",
+                    "type": "bool"
+                  },
+                  "else": {
+                    "node": "Block",
+                    "stmts": [
+                      {
+                        "node": "ReturnStmt",
+                        "value": {
+                          "expr": {
+                            "node": "UnaryExpr",
+                            "op": "-",
+                            "operand": {
+                              "node": "IntLiteral",
+                              "type": "i32",
+                              "value": 1
+                            },
+                            "type": "i32"
+                          },
+                          "node": "ParenExpr",
+                          "type": "i32"
+                        }
+                      }
+                    ]
+                  },
+                  "node": "IfStmt",
+                  "then": {
+                    "node": "Block",
+                    "stmts": [
+                      {
+                        "node": "ReturnStmt",
+                        "value": {
+                          "expr": {
+                            "left": {
+                              "decl": 0,
+                              "name": "a",
+                              "node": "Identifier",
+                              "type": "i32"
+                            },
+                            "node": "BinaryExpr",
+                            "op": "/",
+                            "right": {
+                              "decl": 1,
+                              "name": "b",
+                              "node": "Identifier",
+                              "type": "i32"
+                            },
+                            "type": "i32"
+                          },
+                          "node": "ParenExpr",
+                          "type": "i32"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "node": "IfStmt",
+                "then": {
+                  "node": "Block",
+                  "stmts": [
+                    {
+                      "node": "ReturnStmt",
+                      "value": {
+                        "expr": {
+                          "left": {
+                            "decl": 0,
+                            "name": "a",
+                            "node": "Identifier",
+                            "type": "i32"
+                          },
+                          "node": "BinaryExpr",
+                          "op": "*",
+                          "right": {
+                            "decl": 1,
+                            "name": "b",
+                            "node": "Identifier",
+                            "type": "i32"
+                          },
+                          "type": "i32"
+                        },
+                        "node": "ParenExpr",
+                        "type": "i32"
+                      }
+                    }
+                  ]
+                }
+              },
+              "node": "IfStmt",
+              "then": {
+                "node": "Block",
+                "stmts": [
+                  {
+                    "node": "ReturnStmt",
+                    "value": {
+                      "expr": {
+                        "left": {
+                          "decl": 0,
+                          "name": "a",
+                          "node": "Identifier",
+                          "type": "i32"
+                        },
+                        "node": "BinaryExpr",
+                        "op": "-",
+                        "right": {
+                          "decl": 1,
+                          "name": "b",
+                          "node": "Identifier",
+                          "type": "i32"
+                        },
+                        "type": "i32"
+                      },
+                      "node": "ParenExpr",
+                      "type": "i32"
+                    }
+                  }
+                ]
+              }
+            },
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "ReturnStmt",
+                  "value": {
+                    "expr": {
+                      "left": {
+                        "decl": 0,
+                        "name": "a",
+                        "node": "Identifier",
+                        "type": "i32"
+                      },
+                      "node": "BinaryExpr",
+                      "op": "+",
+                      "right": {
+                        "decl": 1,
+                        "name": "b",
+                        "node": "Identifier",
+                        "type": "i32"
+                      },
+                      "type": "i32"
+                    },
+                    "node": "ParenExpr",
+                    "type": "i32"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "name": "calc",
+      "node": "FnDecl",
+      "params": [
+        {
+          "id": 0,
+          "name": "a",
+          "node": "Param",
+          "type": "i32"
+        },
+        {
+          "id": 1,
+          "name": "b",
+          "node": "Param",
+          "type": "i32"
+        },
+        {
+          "id": 2,
+          "name": "op",
+          "node": "Param",
+          "type": "i32"
+        }
+      ],
+      "returnType": "i32"
+    },
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "id": 2,
+            "init": {
+              "node": "IntLiteral",
+              "type": "i32",
+              "value": 0
+            },
+            "mutable": true,
+            "name": "sum",
+            "node": "VarDecl",
+            "type": "i32"
+          },
+          {
+            "body": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "expr": {
+                    "node": "AssignExpr",
+                    "target": {
+                      "decl": 1,
+                      "name": "i",
+                      "node": "Identifier",
+                      "type": "i32"
+                    },
+                    "type": "i32",
+                    "value": {
+                      "left": {
+                        "decl": 1,
+                        "name": "i",
+                        "node": "Identifier",
+                        "type": "i32"
+                      },
+                      "node": "BinaryExpr",
+                      "op": "-",
+                      "right": {
+                        "node": "IntLiteral",
+                        "type": "i32",
+                        "value": 1
+                      },
+                      "type": "i32"
+                    }
+                  },
+                  "node": "ExprStmt"
+                },
+                {
+                  "expr": {
+                    "node": "AssignExpr",
+                    "target": {
+                      "decl": 2,
+                      "name": "sum",
+                      "node": "Identifier",
+                      "type": "i32"
+                    },
+                    "type": "i32",
+                    "value": {
+                      "left": {
+                        "decl": 2,
+                        "name": "sum",
+                        "node": "Identifier",
+                        "type": "i32"
+                      },
+                      "node": "BinaryExpr",
+                      "op": "+",
+                      "right": {
+                        "decl": 0,
+                        "name": "a",
+                        "node": "Identifier",
+                        "type": "i32"
+                      },
+                      "type": "i32"
+                    }
+                  },
+                  "node": "ExprStmt"
+                }
+              ]
+            },
+            "cond": {
+              "expr": {
+                "left": {
+                  "decl": 1,
+                  "name": "i",
+                  "node": "Identifier",
+                  "type": "i32"
+                },
+                "node": "BinaryExpr",
+                "op": "==",
+                "right": {
+                  "node": "IntLiteral",
+                  "type": "i32",
+                  "value": 0
+                },
+                "type": "bool"
+              },
+              "node": "ParenExpr",
+              "type": "bool"
+            },
+            "node": "WhileStmt"
+          },
+          {
+            "node": "ReturnStmt",
+            "value": {
+              "decl": 2,
+              "name": "sum",
+              "node": "Identifier",
+              "type": "i32"
+            }
+          }
+        ]
+      },
+      "name": "sum",
+      "node": "FnDecl",
+      "params": [
+        {
+          "id": 0,
+          "name": "a",
+          "node": "Param",
+          "type": "i32"
+        },
+        {
+          "id": 1,
+          "name": "i",
+          "node": "Param",
+          "type": "i32"
+        }
+      ],
+      "returnType": "i32"
+    },
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "cond": {
+              "expr": {
+                "left": {
+                  "left": {
+                    "decl": 0,
+                    "name": "score",
+                    "node": "Identifier",
+                    "type": "i32"
+                  },
+                  "node": "BinaryExpr",
+                  "op": ">",
+                  "right": {
+                    "node": "IntLiteral",
+                    "type": "i32",
+                    "value": 90
+                  },
+                  "type": "bool"
+                },
+                "node": "BinaryExpr",
+                "op": "&&",
+                "right": {
+                  "left": {
+                    "decl": 0,
+                    "name": "score",
+                    "node": "Identifier",
+                    "type": "i32"
+                  },
+                  "node": "BinaryExpr",
+                  "op": "<",
+                  "right": {
+                    "node": "IntLiteral",
+                    "type": "i32",
+                    "value": 100
+                  },
+                  "type": "bool"
+                },
+                "type": "bool"
+              },
+              "node": "ParenExpr",
+              "type": "bool"
+            },
+            "else": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "ReturnStmt",
+                  "value": {
+                    "node": "BoolLiteral",
+                    "type": "bool",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            "node": "IfStmt",
+            "then": {
+              "node": "Block",
+              "stmts": [
+                {
+                  "node": "ReturnStmt",
+                  "value": {
+                    "node": "BoolLiteral",
+                    "type": "bool",
+                    "value": true
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "name": "ispassed",
+      "node": "FnDecl",
+      "params": [
+        {
+          "id": 0,
+          "name": "score",
+          "node": "Param",
+          "type": "i32"
+        }
+      ],
+      "returnType": "bool"
+    },
+    {
+      "body": {
+        "node": "Block",
+        "stmts": [
+          {
+            "node": "PrintStmt",
+            "value": {
+              "decl": 0,
+              "name": "v",
+              "node": "Identifier",
+              "type": "i32"
+            }
+          }
+        ]
+      },
+      "name": "show",
+      "node": "FnDecl",
+      "params": [
+        {
+          "id": 0,
+          "name": "v",
+          "node": "Param",
+          "type": "i32"
+        }
+      ],
+      "returnType": null
+    }
+  ],
+  "node": "Program"
+}
