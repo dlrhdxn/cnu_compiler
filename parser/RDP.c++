@@ -1328,7 +1328,7 @@ int main(int argc, char* argv[]){
     ofstream logf;
     ofstream astf;
     logf.open(argv[2]);
-    
+    astf.open(argv[3]);
 
     try{
         rdp.parse();
@@ -1342,24 +1342,25 @@ int main(int argc, char* argv[]){
         logf << analyzer->getlog();
         logf << "OK\n";
 
-        removeTokenInfo(ast);
-        astf.open(argv[3]);
+        // removeTokenInfo(ast);
         astf << ast.dump(2) << '\n';
 
     }catch(ParseError& e){
         logf << rdp.getcst();    
         logf << e << '\n';
-        cout << "[Parse] " << e << '\n';
+        cerr << "[Parse] " << e << '\n';
+        return 1;
     }catch(SemanticError& e){
+        // astf << rdp.getast().dump(2);
         logf << analyzer->getlog();
         logf << e << '\n';
-        cout << "[Semantic Analyze] " << e << '\n';
-
+        cerr << "[Semantic Analyze] " << e << '\n';
+        return 1;
     }catch(exception& e){
         logf << analyzer->getlog();
         astf << rdp.getast().dump(2);
         logf << e.what();
-        throw;
+        return 1;
     }
     return 0;
 }
